@@ -1424,7 +1424,7 @@ namespace dotNetLab.Data.Orm
         /// </summary>
         public bool Connect(String DBName = "shikii", String usrName = "root", String pwd = "123")
         {
-            return Connect(DBName, usrName, pwd);
+            return Connect(DBName, usrName, pwd,null);
         }
 
         /// <summary>

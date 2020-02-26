@@ -55,7 +55,7 @@ namespace dotNetLab.Data
             conn.Open();
 
             DbCommand command = conn.CreateCommand();
-            Console.WriteLine("创建了一个连接");
+        
 
             return command;
 
@@ -80,7 +80,7 @@ namespace dotNetLab.Data
             conn.ConnectionString = _connectionString==null? connectionString:_connectionString ;
             conn.Open();
             DbCommand command = conn.CreateCommand();
-            Console.WriteLine("创建了一个连接");
+      
             return command;
         }
         /// <summary>
@@ -95,14 +95,14 @@ namespace dotNetLab.Data
             conn.ConnectionString = _connectionString == null ? connectionString : _connectionString;
             conn.Open();
             DbCommand command = conn.CreateCommand();
-            Console.WriteLine("创建了一个连接");
+        
             ReservedDbCommands.Enqueue(command);
             return command;
         }
 
         void CycleCommands()
         {
-            Console.WriteLine("回收DbCommand");
+      
             //回收已经完成的线程，Dbcommand
             for (int i = 0; i < Threads.Count; i++)
             {
