@@ -1,0 +1,68 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>22f76e5b-c8cd-40c4-8d0b-1aab2eed0c19</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Net_App_Support_Cross</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Data\DBEngines\FireBirdEngine.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\DBEngines\MySQLDBEngine.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\DBEngines\PostgreSQLEngine.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\DBEngines\SQLCEDB.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\DBEngines\SQLiteDBEngine.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\DBEngines\SQLServerDBEngine.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\Interfaces\IHugeDB.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\Interfaces\ITableInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\orm\Attributes\DBKeyAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\orm\Attributes\DBTypeAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\orm\Attributes\FireBirdTextTypeAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\orm\Attributes\MySqlTextTypeAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\orm\Attributes\OrmAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\orm\Attributes\PostgresqlTextTypeAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\orm\Attributes\SQLCETextTypeAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\orm\Attributes\SQLiteTextTypeAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\orm\Attributes\SQLServerTextTypeAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\orm\CommonEntities\AppEntity.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\orm\CommonEntities\AppLogEntity.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\orm\DBManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\orm\Attributes\EntityAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\orm\Entity_Descs\EntityBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\orm\Entity_Descs\EntityInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\orm\Entity_Descs\Entry.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\orm\Entity_Descs\EntryExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\orm\Entity_Descs\SimplifiedEntity.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\orm\Expression2SQL.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\orm\OrmDBPlatform.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\orm\OrmDBPlatformManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\Root\DbPipeInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\Root\DBPlatform.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\Root\DbPlatformRoot.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\Root\DBPlatform_Embedded.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\FTPService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\TClient.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\TCPBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\TCPPool.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\TCPServer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)加密与解密\Encrypt.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)反射\Invoker.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)存储引擎\StorageEngine.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)扩展方法\ExtensionFuncs.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)接口\IReadableLog.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)文件系统\FileSystem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)日志\ExpandoObjectEx.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)日志\LitJson\IJsonWrapper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)日志\LitJson\JsonData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)日志\LitJson\JsonException.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)日志\LitJson\JsonMapper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)日志\LitJson\JsonMockWrapper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)日志\LitJson\JsonReader.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)日志\LitJson\JsonWriter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)日志\LitJson\Lexer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)日志\LitJson\ParserToken.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)日志\LogEntity.cs" />
+  </ItemGroup>
+</Project>

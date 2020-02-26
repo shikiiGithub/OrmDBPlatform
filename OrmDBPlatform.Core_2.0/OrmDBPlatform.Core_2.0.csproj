@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <RootNamespace>OrmDBPlatform.Core_2._0</RootNamespace>
+  </PropertyGroup>
+
+  <Import Project="..\ShareProj\Net_App_Support_Cross.projitems" Label="Shared" />
+
+</Project>
