@@ -8,5 +8,5 @@
 ### 3.支持关系数据库有 SQL Server/LocalDB/SQLCE Firebird MySQL Postgresql Sqlite
 
 ## 库的选择
-### 对于Xamarin 请选择使用NETStandard 项目
+### 对于Xamarin 请选择使用OrmDBPlatform.NETStandard项目
 ### 传统桌面请使用.net_4.0 /.net core 的项目
