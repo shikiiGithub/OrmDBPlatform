@@ -1,7 +1,5 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29424.173
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Net_App_Support_Cross", "ShareProj\Net_App_Support_Cross.shproj", "{22F76E5B-C8CD-40C4-8D0B-1AAB2EED0C19}"
 EndProject
