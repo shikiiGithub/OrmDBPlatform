@@ -1,5 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29424.173
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Net_App_Support_Cross", "ShareProj\Net_App_Support_Cross.shproj", "{22F76E5B-C8CD-40C4-8D0B-1AAB2EED0C19}"
 EndProject
@@ -9,10 +11,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OrmDBPlatform.Core_2.0", "O
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrmDBPlatform.NETFramework4.0", "OrmDBPlatform.NETFramework4.0\OrmDBPlatform.NETFramework4.0.csproj", "{4A90CAF6-E217-4C23-B7BD-970277BB680F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrmDBPlatform.NETFramework2.0", "OrmDBPlatform.NETFramework2.0\OrmDBPlatform.NETFramework2.0.csproj", "{BBB5BCAD-7AAE-47CA-9E52-0DC79E0C732F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp1", "ConsoleApp1\ConsoleApp1.csproj", "{F65259E6-5970-4C0B-85AC-2C9C41D3C541}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		ShareProj\Net_App_Support_Cross.projitems*{22f76e5b-c8cd-40c4-8d0b-1aab2eed0c19}*SharedItemsImports = 13
 		ShareProj\Net_App_Support_Cross.projitems*{4a90caf6-e217-4c23-b7bd-970277bb680f}*SharedItemsImports = 4
+		ShareProj\Net_App_Support_Cross.projitems*{bbb5bcad-7aae-47ca-9e52-0dc79e0c732f}*SharedItemsImports = 4
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,6 +38,14 @@ Global
 		{4A90CAF6-E217-4C23-B7BD-970277BB680F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4A90CAF6-E217-4C23-B7BD-970277BB680F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4A90CAF6-E217-4C23-B7BD-970277BB680F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BBB5BCAD-7AAE-47CA-9E52-0DC79E0C732F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BBB5BCAD-7AAE-47CA-9E52-0DC79E0C732F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BBB5BCAD-7AAE-47CA-9E52-0DC79E0C732F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BBB5BCAD-7AAE-47CA-9E52-0DC79E0C732F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F65259E6-5970-4C0B-85AC-2C9C41D3C541}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F65259E6-5970-4C0B-85AC-2C9C41D3C541}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F65259E6-5970-4C0B-85AC-2C9C41D3C541}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F65259E6-5970-4C0B-85AC-2C9C41D3C541}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

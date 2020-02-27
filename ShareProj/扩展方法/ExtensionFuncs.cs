@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.IO;
+#if NET4
 using System.Linq;
+#endif
 using System.Reflection;
 using System.Text;
  
@@ -62,6 +64,13 @@ namespace dotNetLab.Common
         
         }
 
+
+#if NET2
+        public static void Clear  (this StringBuilder sb)
+        {
+            sb.Remove(0, sb.Length);
+        }
+#endif
         /// <summary>
         /// 形成sql 无意义
         /// </summary>
@@ -89,14 +98,30 @@ namespace dotNetLab.Common
      
         public static bool IsValideString(this String str, bool CheckWhiteSpace = false )
         {
+#if NET4
             return !String.IsNullOrEmpty(str) && !String.IsNullOrWhiteSpace(str);
+#endif
+#if NET2
+            return !String.IsNullOrEmpty(str) && str != " ";
+#endif
         }
-        
-      
 
+#if NET2
+        public static int Count<T>(this IEnumerable<T> array)
+        {
+            IEnumerator en = array.GetEnumerator();
+            int n = 0;
+            while (en.MoveNext())
+            {
+                n++;
+            }
+            return 0;
+        }
+#endif
         public static String ConnectAll<T>(this IEnumerable<T> array,String gapStr)
         {
            int n =  array.Count();
+            
             StringBuilder sb = new StringBuilder();
             if (n > 0)
             {

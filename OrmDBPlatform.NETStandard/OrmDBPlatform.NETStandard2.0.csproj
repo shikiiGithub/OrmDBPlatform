@@ -4,6 +4,10 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE;NET4</DefineConstants>
+  </PropertyGroup>
+
   <Import Project="..\ShareProj\Net_App_Support_Cross.projitems" Label="Shared" />
 
   <ItemGroup>

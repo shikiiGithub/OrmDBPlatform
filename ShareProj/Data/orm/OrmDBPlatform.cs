@@ -4,8 +4,10 @@ using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
 using System.IO;
+#if NET4
 using System.Linq;
 using System.Linq.Expressions;
+#endif
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -47,7 +49,8 @@ namespace dotNetLab.Data.Orm
         /// </summary>
         void BeginMeasureTime()
         {
-            MyStopwatch.Restart();
+            MyStopwatch.Reset();
+            MyStopwatch.Start();
              
         }
         /// <summary>
@@ -291,7 +294,7 @@ namespace dotNetLab.Data.Orm
             }
 
             if (EntitySourceAssemblies == null)
-                EntitySourceAssemblies = new Assembly[] { Assembly.GetCallingAssembly() };
+                EntitySourceAssemblies = new Assembly[] { Assembly.GetEntryAssembly() };
             
             for (int i = 0; i < EntitySourceAssemblies.Length; i++)
             {
@@ -331,7 +334,7 @@ namespace dotNetLab.Data.Orm
                      
             }
             if (EntitySourceAssemblies == null)
-                EntitySourceAssemblies = new Assembly[] { Assembly.GetCallingAssembly() };
+                EntitySourceAssemblies = new Assembly[] { Assembly.GetEntryAssembly() };
             for (int i = 0; i < EntitySourceAssemblies.Length; i++)
             {
                 CreateAllTable(EntitySourceAssemblies[i]);
@@ -511,7 +514,7 @@ namespace dotNetLab.Data.Orm
 
                             }
 
-                            lstColNames = kv.GetTableColumnNames(tableName).ToList();
+                            lstColNames = kv.GetTableColumnNames(tableName);
                             //是否有增加属性名的情况
                             if (lstColNames.Count != pifs.Length && pifs.Length > lstColNames.Count)
                             {
@@ -757,7 +760,7 @@ namespace dotNetLab.Data.Orm
                 }
                 else
                 {
-                    sb.Clear();
+                    sb.Remove(0, sb.Length);
                     foreach (var item in pifs)
                     {
                         if (item.Name.Equals("Id"))
@@ -785,7 +788,11 @@ namespace dotNetLab.Data.Orm
                 return e;
             }
         }
-
+        protected void AssignValue(Object Host, String PropertyName, Object Value)
+        {
+            PropertyInfo pif = Host.GetType().GetProperty(PropertyName);
+            pif.SetValue(Host, Value, null);
+        }
         /// <summary>
         /// 高速场合保存新增记录（insert)
         /// </summary>
@@ -825,7 +832,7 @@ namespace dotNetLab.Data.Orm
                             //自动设置自增值 
                             if (this.AdonetContext.GetType().Name=="FireBirdEngine")
                             {
-                                dynamic fireBird = this.AdonetContext ;
+                                FireBirdEngine fireBird = this.AdonetContext as FireBirdEngine ;
                                 int id = fireBird.GetAuto_IncrementID(tableName, item.Name );
                                 item.SetValue(entity, id, null);
                             }
@@ -945,6 +952,8 @@ namespace dotNetLab.Data.Orm
        
                 
        }
+
+#if NET4
         /// <summary>
         /// 删除一条记录
         /// </summary>
@@ -952,18 +961,18 @@ namespace dotNetLab.Data.Orm
         /// <param name="HowToDelete">比如“delete from test where name='sfs'”则HowToDelete=(x)=> x.name='sfs'</param>
         /// <param name="TableName"></param>
         /// <param name="args"></param>
-        public void Delete<T> (Expression<Func<T, bool>> HowToDelete, String TableName = null ) where T : EntityBase
+        public void Delete<T>(Expression<Func<T, bool>> HowToDelete, String TableName = null) where T : EntityBase
         {
             Expression2SQL expression2SQL = new Expression2SQL();
 
 
-           String sql = expression2SQL.GetRawSql<T>(HowToDelete);
-        
+            String sql = expression2SQL.GetRawSql<T>(HowToDelete);
+
             String tableName = TableName;
             if (tableName == null)
                 tableName = GetTableName(typeof(T), null);
-            AdonetContext.RemoveRecord(tableName, sql );
-            
+            AdonetContext.RemoveRecord(tableName, sql);
+
         }
         public virtual List<T> Where<T>  (Expression<Func<T, bool>> WhererExpression
             ,String TableName=null  
@@ -979,7 +988,7 @@ namespace dotNetLab.Data.Orm
             sql = "select * from " + tableName + " where " + sql;
             List<T> EntitySet = new List<T>();
             ITableInfo keyValueDB = AdonetContext as ITableInfo;
-            List<String> lstColNames = keyValueDB.GetTableColumnNames(tableName ).ToList();
+            List<String> lstColNames = keyValueDB.GetTableColumnNames(tableName );
 
             DbDataReader reader = AdonetContext.FastQueryData(sql );
             int nFileCount = reader.FieldCount;
@@ -1002,7 +1011,7 @@ namespace dotNetLab.Data.Orm
             reader.Close();
             return EntitySet ;
         }
-
+#endif
         /// <summary>
         /// 取出所有数据
         /// </summary>
@@ -1041,6 +1050,7 @@ namespace dotNetLab.Data.Orm
             return EntitySet;
         }
 
+#if NET4
         /// <summary>
         /// 取出一行数据
         /// </summary>
@@ -1102,11 +1112,7 @@ namespace dotNetLab.Data.Orm
             }
         }
       
-        protected  void AssignValue(Object Host,String PropertyName, Object Value)
-        {
-            PropertyInfo pif = Host.GetType().GetProperty(PropertyName);
-            pif.SetValue(Host, Value,null);
-        }
+       
         /// <summary>
         /// 查询表中部分列（需要自定义部分列类!请勿包含主键,可以更新数据）
         /// </summary>
@@ -1263,7 +1269,7 @@ namespace dotNetLab.Data.Orm
             sqlStringBuilder.Clear();
             
         }
-
+#endif
         /// <summary>
         /// 是否包含该表
         /// </summary>
@@ -1296,6 +1302,7 @@ namespace dotNetLab.Data.Orm
         {
             this.AdonetContext.BatchExecuteNonQuery(_conn,actions);
         }
+#if NET4
 
         /// <summary>
             /// 从数据库App表中取出json数据并转化为dynamic对象
@@ -1324,6 +1331,7 @@ namespace dotNetLab.Data.Orm
             }
         }
 
+
         /// <summary>
         /// 保存dynamic 数据
         /// 往数据库的App表中写入转化json数据的dynamic对象
@@ -1344,6 +1352,7 @@ namespace dotNetLab.Data.Orm
             }
             AdonetContext.Write(UniqueName, LitJson.JsonMapper.ToJson(dyn_Obj));
         }
+#endif
 
         /// <summary>
         /// 仅为作者使用(可以用来连接sqlite/firebird 嵌入式数据库);

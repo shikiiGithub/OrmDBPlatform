@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+
 using System.Reflection;
 using System.Text;
 
@@ -170,8 +170,8 @@ namespace dotNetLab.Common
                 if (byteArrayType == type)
                 {
                     byte[] buffer = (byte[])xvalue;
-                    bw.Write(buffer.Count());
-                    bw.Write(buffer, 0, buffer.Count());
+                    bw.Write(buffer.Length);
+                    bw.Write(buffer, 0, buffer.Length);
                 }
             }
             public void Fetch(BinaryReader br)

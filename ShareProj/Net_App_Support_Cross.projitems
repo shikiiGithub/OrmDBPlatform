@@ -47,6 +47,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Networking\TCPBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Networking\TCPPool.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Networking\TCPServer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)兼容\DelegateExtension.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)兼容\ExtensionAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)加密与解密\Encrypt.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)反射\Invoker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)存储引擎\StorageEngine.cs" />

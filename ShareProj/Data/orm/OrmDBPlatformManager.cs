@@ -4,8 +4,10 @@ using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
 using System.IO;
+#if NET4
 using System.Linq;
 using System.Linq.Expressions;
+#endif
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -38,6 +40,7 @@ namespace dotNetLab.Data.Orm
                 bool b = WebApiControllerBaseType.IsAssignableFrom(item);
                 if (b)
                 {
+                     
                     List<PropertyInfo> propertyInfos = new List<PropertyInfo>();
                     PropertyInfo[] pifs = item.GetProperties();
                     foreach (var pif in pifs)
@@ -93,7 +96,8 @@ namespace dotNetLab.Data.Orm
 
         void BeginMeasureDBConnectTime()
         {
-            DBConnectStopwatch.Restart();
+            DBConnectStopwatch.Reset();
+            DBConnectStopwatch.Start();
         }
 
         void EndMeasureDBConnectTime()

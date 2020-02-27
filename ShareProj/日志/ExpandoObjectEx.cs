@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if NET4
+using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
@@ -123,3 +124,4 @@ namespace dotNetLab.Common
 
 }
 
+#endif
