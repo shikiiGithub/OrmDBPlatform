@@ -102,7 +102,7 @@
       OrmDB.InternalExecuteNonQuery();
  ```
 
-### 7.如何使用原生ADO.NET
+### 7.如何使用“简化”ADO.NET Helper
 ```C#
  OrmDB.AdonetContext.ExecuteNonQuery(sql,这个参数可以不给);
  //查询
@@ -113,3 +113,16 @@ String str = UniqueResult(string sql, DbCommand cmd = null)
 DBPlatform.cs 源码
 
 ```
+### 7.如何使用原生ADO.NET
+```C#
+  //获得DbCommand
+  DbCommand cmd =  OrmDB.AdonetContext.ThisDbPipeInfo.AvailableCommand ;
+  //获得DbConnection
+  DbConnection cnn = cmd.Connection ;
+  //执行任务
+  cmd.CommandText = "delete from tbl" ;
+  cmd.ExecuteNonQuery() ;
+  
+ 
+```
+
