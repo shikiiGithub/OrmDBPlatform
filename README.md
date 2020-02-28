@@ -6,7 +6,7 @@
 ### 1.net framework 最小支持到4.0(.net 2.0功能不完整,请勿使用)， .net core/standard 支持到2.0 
 
 ### 2 支持桌面/移动（Xamarin）开发
-### 3.支持关系数据库有 SQL Server/LocalDB/SQLCE Firebird MySQL Postgresql Sqlite
+### 3.支持关系数据库有 SQL Server/LocalDB/Firebird/MySQL/Postgresql/SQLCE/Sqlite
 
 ## 库的选择
 ### 对于Xamarin 请选择使用OrmDBPlatform.NETStandard项目
