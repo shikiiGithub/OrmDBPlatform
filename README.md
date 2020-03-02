@@ -1,4 +1,4 @@
-# OrmDBPlatform (文档持续更新)
+# OrmDBPlatform
 
 跨平台极轻.net Orm框架（联系：shikii@outlook.com 或者在Issues提问）
 
