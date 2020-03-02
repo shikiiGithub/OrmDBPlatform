@@ -97,7 +97,7 @@
       //具体请参考方式上的注释
       //不明白可以给我留言
       //返回实体集
-      OrmDB.Where() ;
+     List<SampleEntity> lst  = OrmDB.Where<SampleEntity>(x=>x.Name=="Google") ;
       //返回为DataTable
       OrmDB.InternalExecuteNonQuery();
  ```
@@ -113,7 +113,32 @@ String str = UniqueResult(string sql, DbCommand cmd = null)
 DBPlatform.cs 源码
 
 ```
-### 7.如何使用原生ADO.NET
+
+### 8.写/读键值对,写入/读取Json
+```C#
+//写/读键值对 
+ //写
+OrmDB.AdonetContext.Write(key,value) ;
+//读
+String val = OrmDB.AdonetContext.Fetch(key) ; 
+
+//写入/读取Json
+//建议作为读写程序配置使用
+//写
+System.Dynamic.ExpandoObject dyn_Obj = new System.Dynamic.ExpandoObject() ;
+dyn_Obj.Name="google" ; //一定添加Name这个属性，因为WriteDynamicObject这个方法内部会用到
+dyn_Obj.Val = "val";
+OrmDB.WriteDynamicObject(dyn_Obj) ;
+
+//读
+//dyn_Obj 一定要先初始化，这样会到数据库中保存的json 取出 
+System.Dynamic.ExpandoObject dyn_Obj = new System.Dynamic.ExpandoObject() ;
+dyn_Obj.Name="google" ; //一定添加Name这个属性，因为FetchDynamicObject这个方法内部会用到
+OrmDB.FetchDynamicObject(dyn_Obj ) ;
+
+```
+
+### 9.如何使用原生ADO.NET
 ```C#
   //获得DbCommand
   DbCommand cmd =  OrmDB.AdonetContext.ThisDbPipeInfo.AvailableCommand ;
@@ -125,4 +150,6 @@ DBPlatform.cs 源码
   
  
 ```
+
+
 
