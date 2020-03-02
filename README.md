@@ -77,10 +77,10 @@
             se.Save(SaveMode.INSERT) ;
  ```
 
-### 4.删除
+### 4.删
  ```c#
  //具体请参考方式上的注释
-            OrmDB.Delete() ;
+            OrmDB.Delete<SampleEntity>(x=>x.Name=="Google") ;
  ```
 
 ### 5.改
