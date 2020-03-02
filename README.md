@@ -62,7 +62,7 @@
    ```
 ### 3.增
  ```c#
-          //这种方式针对于没有并发的，简单同步的场合
+          //这种方法针对于没有并发的，简单同步的场合
           //比如在Xamarin 中使用
               SampleEntity se = new SampleEntity() ;
               se.Name="Google" ;
@@ -79,7 +79,7 @@
 
 ### 4.删
  ```c#
- //具体请参考方式上的注释
+ //具体请参考方法上的注释
             OrmDB.Delete<SampleEntity>(x=>x.Name=="Google") ;
  ```
 
@@ -94,7 +94,7 @@
 
 ### 6.查
  ```c#
-      //具体请参考方式上的注释
+      //具体请参考方法上的注释
       //不明白可以给我留言
       //返回实体集
      List<SampleEntity> lst  = OrmDB.Where<SampleEntity>(x=>x.Name=="Google") ;
