@@ -75,6 +75,34 @@
               se.Save() ;
           //需要注意的是如果需要在高速场合下请使用：
             se.Save(SaveMode.INSERT) ;
+          //批量（事务）
+           /// <summary>
+        /// 批量事务处理(适用于大数据传递)
+        /// 不需要显示使用transaction,内置使用Transaction
+        /// 可以使用orm方式对数据库写操作
+        /// 也可以使用传入的DbCommand 对象写操作
+        /// </summary>
+        /// <param name="actions">多个线程要执行的Action(每个Action 一个线程)</param>
+        public void BatchExecuteNonQuery(String _conn=null,params Action<DbCommand>[] actions)
+       //例子：
+        OrmDB.BatchExecuteNonQuery(null,(cmd)=>{
+            for(int i=0;i<100;i++)
+            {
+               SampleEntity sample  = OrmDB.GetEntity<SampleEntity>() ;
+                 sample.Name = "Microsoft" ;
+                 sample.XDesc = "炒鸡坑逼" ;
+                 sample.Save(SaveMode.INSERT) ;
+            }
+
+        },(cmd)=>{ for(int i=0;i<100;i++)
+            {
+               SampleEntity sample  = OrmDB.GetEntity<SampleEntity>() ;
+                 sample.Name = "Google" ;
+                 sample.XDesc = "创新垃圾" ;
+                 sample.Save(SaveMode.INSERT) ;
+            } }) ;
+
+
  ```
 
 ### 4.删
