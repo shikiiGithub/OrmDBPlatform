@@ -10,12 +10,15 @@ namespace dotNetLab.Data
 {
     public class DbPipeInfo:IDisposable
     {
-       public Dictionary<int, DbCommand> ThreadId_DbCommandPairs = new Dictionary<int, DbCommand>();
+        public Dictionary<int,List< DbCommand> > ThreadId_DbCommandPairs = new Dictionary<int, List <DbCommand> >();
         public List<int> ThreadIDs = new List<int>();
         public List<Thread> Threads = new List<Thread>();
         public Queue<DbCommand> ReservedDbCommands = new Queue<DbCommand>();
+
+        int MainThreadId;
+        
         Type ConnectionType;
-          String connectionString;
+        String connectionString;
         public DbConnection MainDbConnection;
         public DbCommand MainDbCommand;
         private Timer tmr;
@@ -44,6 +47,7 @@ namespace dotNetLab.Data
             DbCommand command = ThisDbConnection.CreateCommand();
             MainDbCommand = command;
             ReservedDbCommands.Enqueue(command);
+            MainThreadId = Thread.CurrentThread.ManagedThreadId;
 
         }
 
@@ -102,21 +106,43 @@ namespace dotNetLab.Data
 
         void CycleCommands()
         {
-      
+            List<DbCommand> cmds = null;
             //回收已经完成的线程，Dbcommand
             for (int i = 0; i < Threads.Count; i++)
             {
-                if(!Threads[i].IsAlive)
+                if (!Threads[i].IsAlive)
                 {
-                   
+
                     int nId = Threads[i].ManagedThreadId;
-                    DbCommand _cmd = ThreadId_DbCommandPairs[nId];
-                    ReservedDbCommands.Enqueue(_cmd);
-                    ThreadId_DbCommandPairs.Remove(nId);
+                     cmds = ThreadId_DbCommandPairs[nId];
+                    for (int j = 0; j < cmds.Count; j++)
+                    {
+                        ReservedDbCommands.Enqueue(cmds[j]);
+                    }
                     Threads.RemoveAt(i);
                     ThreadIDs.Remove(nId);
+                    ThreadId_DbCommandPairs.Remove(nId);
+
                 }
             }
+            try
+            {
+                cmds = ThreadId_DbCommandPairs[MainThreadId];
+                for (int j = 1; j < cmds.Count; j++)
+                {
+                    if (cmds[j].Connection.State != System.Data.ConnectionState.Executing && cmds[j].Connection.State != System.Data.ConnectionState.Fetching)
+                    {
+                        ReservedDbCommands.Enqueue(cmds[j]);
+                        cmds.RemoveAt(j);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+
+                Console.WriteLine(ex.Message + " "+ex.StackTrace);
+            }
+             
 
         }
         public DbCommand AvailableCommand  
@@ -125,20 +151,32 @@ namespace dotNetLab.Data
             get
             {
                 DbCommand command = null;
+               
                 int threadid = Thread.CurrentThread.ManagedThreadId;
                 if (!this.ThreadIDs.Contains(threadid))
                 {
                     if (ReservedDbCommands.Count > 0)
                         command = ReservedDbCommands.Dequeue();
                     else
-                     command = NewCommand();
+                      
                     Threads.Add(Thread.CurrentThread);
-                    ThreadId_DbCommandPairs.Add(threadid, command);
+                    List<DbCommand> lstDbCommand = new List<DbCommand>();
+                    lstDbCommand.Add(command);
+                    ThreadId_DbCommandPairs.Add(threadid, lstDbCommand);
                     ThreadIDs.Add(threadid);
                 }
                else
                 { 
-                    command = ThreadId_DbCommandPairs[threadid];
+                    command = ThreadId_DbCommandPairs[threadid][0];
+                    if(command.Connection.State == System.Data.ConnectionState.Executing|| command.Connection.State == System.Data.ConnectionState.Fetching)
+                    {
+                        if (ReservedDbCommands.Count > 0)
+                            command = ReservedDbCommands.Dequeue();
+                        else
+                            command = NewCommand();
+                        ThreadId_DbCommandPairs[threadid].Add(command);
+                    }
+
                 }
                 return command;
            }
@@ -153,8 +191,8 @@ namespace dotNetLab.Data
                 {
                     try
                     {
-                        item.Value.Dispose();
-                        item.Value.Connection.Close();
+                         item.Value.ForEach(x => x.Dispose());
+                        item.Value.ForEach(x => x.Connection.Close()) ;
                     }
                     catch (Exception e)
                     {
