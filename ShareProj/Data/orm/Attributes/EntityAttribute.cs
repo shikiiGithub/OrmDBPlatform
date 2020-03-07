@@ -8,6 +8,8 @@ namespace dotNetLab.Data.Orm
     {
         public String EntityDescription;
 
+        public String TableName;
+
         public static readonly String MANUAL_CREATE_TABLE = "MANUAL_CREATE_TABLE";
         public static readonly String AUTO_CREATE_TABLE = "AUTO_CREATE_TABLE";
         public EntityAttribute(String EntityDescription = "AUTO_CREATE_TABLE")

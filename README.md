@@ -44,7 +44,7 @@
          bool isConnected = OrmDB.Connect(   asm_SQLSEVER, ip,port, "shikii",  "123", "sa") ;
    
 ```
-   ### 2.新建立Entities（可自己命名） 文件夹，在Entities下新建 SampleEntity 类，这将在OrmDBPlatform.Connect 后创建名为Sample的表，请注意必须继续自EntityBase
+   ### 2.新建立Entities（可自己命名） 文件夹，在Entities下新建 SampleEntity 类，这将在OrmDBPlatform.Connect 后创建名为Sample的表，请注意必须继承自EntityBase
    ```c#
       //可以使用  [Entity("MANUAL_CREATE_TABLE")] 来手动创建此表 
       //默认自动创建
@@ -127,7 +127,14 @@
       //返回实体集
      List<SampleEntity> lst  = OrmDB.Where<SampleEntity>(x=>x.Name=="Google") ;
       //返回为DataTable
-      OrmDB.InternalExecuteNonQuery();
+        /// <summary>
+        /// 兼容以前的查询方式，灵活度最高
+        /// </summary>
+        /// <typeparam name="T">实体类型</typeparam>
+        /// <param name="selectSQLExpression">对应于select 语句</param>
+        /// <param name="FromSQLExpression">对应于from sql语句</param>
+        /// <param name="WhererExpression">对应于where sql语句</param>
+      public virtual DataTable InternalQuery<T>(Expression<Func<T, Entry>> selectSQLExpression  ,Expression<Func<T, Entry>> FromSQLExpression  = null,Expression<Func<T, bool>> WhererExpression=null)
  ```
 
 ### 7.如何使用“简化”ADO.NET Helper
