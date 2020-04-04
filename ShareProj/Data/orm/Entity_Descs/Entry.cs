@@ -1,8 +1,10 @@
 ﻿﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
-
+using System.Threading.Tasks;
 using dotNetLab.Common;
 namespace dotNetLab.Data.Orm
 {
@@ -14,6 +16,7 @@ namespace dotNetLab.Data.Orm
         public String PrimaryKeyPropertyName;
         public bool PrimaryKeyPropertyQuote = false;
         public enum SaveMode { INSERT, UPDATE, MIXED }
+       
         static OrmDBPlatform InternalOrmDBPlatform = null;
        
         protected PropertyInfo PrimaryPropertyInfo = null;
@@ -83,6 +86,27 @@ namespace dotNetLab.Data.Orm
 
 
         public abstract void Save(SaveMode mode = SaveMode.MIXED, String tableName = null);
+
+
+        public string MapJson<T>( string [] arr , params Expression<Func<T,string>> [] Properties ) where T: Entry
+        {
+            if (arr.Length != Properties.Length)
+                return "arr.Length != Properties.Length";
+            System.Dynamic.ExpandoObject internalObject = new System.Dynamic.ExpandoObject();
+            
+                IDictionary<String, object> dict = internalObject;
+
+            Type type = this.GetType();
+            for (int i = 0; i < arr.Length; i++)
+            {
+                String propertyName = Properties[i].Body.ToString();
+                int nindex =PropertyNameSet.FindIndex(x => x == propertyName);
+                 Object val = pifs[nindex].GetValue(this);
+                dict.Add(arr[i], val);
+
+            }
+             return  LitJson.JsonMapper.ToJson(internalObject);
+        }
 
         ~Entry()
         {

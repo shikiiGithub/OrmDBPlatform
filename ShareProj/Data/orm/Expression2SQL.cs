@@ -1,13 +1,10 @@
-﻿#if NET4
-using System;
+﻿﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-
 using System.Linq;
 using System.Linq.Expressions;
-
 using System.Text;
- 
+using System.Threading.Tasks;
 
 namespace dotNetLab.Data.Orm
 {
@@ -112,8 +109,6 @@ namespace dotNetLab.Data.Orm
         {
             switch (type)
             {
-                 
-                
                 case ExpressionType.And:
                 case ExpressionType.AndAlso:
                     return " and ";
@@ -540,5 +535,3 @@ namespace dotNetLab.Data.Orm
         }
     }
 }
-
-#endif

@@ -6,7 +6,7 @@ using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
 using System.IO;
-
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -136,7 +136,7 @@ namespace dotNetLab.Data
                     PerformErrorHandler(this, new Exception("Npgsql.dd 未能找到！"));
                     return null;
                 }
-
+                Console.WriteLine(dir + "\\Npgsql.dll");
                 byte[] assemblyBuffer = File.ReadAllBytes(dir + "\\Npgsql.dll");
 
                 if (asm_Npgsql == null)
@@ -151,6 +151,7 @@ namespace dotNetLab.Data
             catch (Exception ex)
             {
                 PerformErrorHandler(this, ex);
+               
                 return null;
             }
 

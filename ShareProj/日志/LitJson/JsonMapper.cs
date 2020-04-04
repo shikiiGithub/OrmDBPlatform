@@ -861,7 +861,7 @@ namespace LitJson
                     }
                 }
             }
-#if NET4
+
             if (obj is System.Dynamic.ExpandoObject)
             {
 
@@ -880,13 +880,12 @@ namespace LitJson
 
 
             }
-#endif
 
 
 
             writer.WriteObjectEnd();
         }
-#endregion
+        #endregion
 
 
         public static string ToJson (object obj,bool ignoreField=false)
@@ -950,7 +949,7 @@ namespace LitJson
 
             return ReadValue(ConvertType, reader);
         }
-#if NET4
+
         public static void ToObject(string json, System.Dynamic.ExpandoObject dyn_Object)
         {
 
@@ -991,7 +990,6 @@ namespace LitJson
             }
 
         }
-#endif
 
         public static IJsonWrapper ToWrapper (WrapperFactory factory,
                                               JsonReader reader)

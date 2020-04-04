@@ -7,9 +7,7 @@ namespace dotNetLab.Data.Orm
    public class EntityAttribute: Attribute
     {
         public String EntityDescription;
-
-        public String TableName;
-
+        public ActionType  EntityActionType = ActionType.None;
         public static readonly String MANUAL_CREATE_TABLE = "MANUAL_CREATE_TABLE";
         public static readonly String AUTO_CREATE_TABLE = "AUTO_CREATE_TABLE";
         public EntityAttribute(String EntityDescription = "AUTO_CREATE_TABLE")
@@ -17,5 +15,28 @@ namespace dotNetLab.Data.Orm
             this.EntityDescription = EntityDescription;
 
         }
+        public EntityAttribute(String EntityDescription, ActionType actionType)
+        {
+            this.EntityDescription = EntityDescription;
+            this.EntityActionType = actionType;
+
+        }
+
+        public String GetSqlTemplateString()
+        {
+            String str = null;
+            switch (EntityActionType)
+            {
+               
+                case ActionType.Alter:
+                    str = "alter table {0} " + EntityDescription;
+                    break;
+               
+            }
+            return str;
+        }
+
+        public enum ActionType { None,Alter}
+
     }
 }

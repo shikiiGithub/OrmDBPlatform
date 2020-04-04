@@ -65,7 +65,7 @@ namespace dotNetLab.Data
 
         }
         /// <summary>
-        /// 批量事务处理(适用于大数据传递)
+        /// <para>批量事务处理(适用于大数据传递)</para>
         /// 不需要显示使用transaction,内置使用Transaction
         /// 可以使用orm方式对数据库写操作
         /// 也可以使用传入的DbCommand 对象写操作
@@ -201,8 +201,10 @@ namespace dotNetLab.Data
             {
 
                 cmd.CommandText = sql;
-                strResult = cmd.ExecuteScalar().ToString();
-
+                Object obj = cmd.ExecuteScalar();
+                if (obj != null)
+                    strResult = obj.ToString();
+               
             }
             catch (Exception e)
             {

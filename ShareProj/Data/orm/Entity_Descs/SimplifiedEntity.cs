@@ -2,9 +2,10 @@
 using dotNetLab.Data.Orm;
 using System;
 using System.Collections.Generic;
- 
+using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace dotNetLab.Data.Orm
 {
@@ -124,7 +125,7 @@ namespace dotNetLab.Data.Orm
 
                 pifs = entity.pifs;
                 sb = new StringBuilder();
-                
+                sb.Clear();
                 foreach (var item in pifs)
                 {
                       if (item.Name.Equals("Id"))

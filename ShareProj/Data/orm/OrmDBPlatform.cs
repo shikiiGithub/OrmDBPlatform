@@ -4,27 +4,22 @@ using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
 using System.IO;
-#if NET4
 using System.Linq;
 using System.Linq.Expressions;
-#endif
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using dotNetLab.Common;
  
 namespace dotNetLab.Data.Orm
 {
-     
   public  class OrmDBPlatform:IDisposable
   {
 
         
         public Type type_EngineType = null;
-        /// <summary>
-        /// LightMode轻模式使用
-        /// </summary>
-        public bool LightMode = false;
+        
         //数据库对象管理中心
         public dotNetLab.Data.DBManager ThisDBManager;
         /// <summary>
@@ -36,22 +31,18 @@ namespace dotNetLab.Data.Orm
         /// 托管所有实体所对应的表信息
         /// </summary>
         public Dictionary<String, EntityInfo> TableManager;
-        /// <summary>
-        /// 是否允许应用程序可以实例化多个OrmDBPlatform对象
-        /// </summary>
-        public bool FixThisOrmDBPlatformObject = true;
+      
 
         public ErrorCallback ErrorInvoker = null;
         public InfoCallback InfoInvoker=null; 
-        public Action<OrmDBPlatform> BootDBAction = null;
-         Stopwatch MyStopwatch = new Stopwatch();
+    
+         Stopwatch InternalStopwatch = new Stopwatch();
         /// <summary>
         /// 内部测时
         /// </summary>
         void BeginMeasureTime()
         {
-            MyStopwatch.Reset();
-            MyStopwatch.Start();
+            InternalStopwatch.Restart();
              
         }
         /// <summary>
@@ -59,9 +50,9 @@ namespace dotNetLab.Data.Orm
         /// </summary>
         void EndMeasureTime()
         {
-            MyStopwatch.Stop();
+            InternalStopwatch.Stop();
 
-            Console.WriteLine("耗时：" + MyStopwatch.Elapsed.TotalMilliseconds + " ms");
+            Console.WriteLine("耗时：" + InternalStopwatch.Elapsed.TotalMilliseconds + " ms");
         }
 
         /// <summary>
@@ -72,15 +63,10 @@ namespace dotNetLab.Data.Orm
         {
             get { return ThisDBManager?.ThisDBPlatform; }
         }
-        /// <summary>
-        /// true --禁止应用程序可以实例化多个OrmDBPlatform对象
-        /// false --允许应用程序可以实例化多个OrmDBPlatform对象
-        /// 如果非并发情况下请默认使用true
-        /// 在创建Entity时可以不使用GetEntity<T>
-        /// </summary>
-        public OrmDBPlatform(bool FixThisOrmDBPlatformObject=true)
+         
+        public OrmDBPlatform()
         {
-            this.FixThisOrmDBPlatformObject = FixThisOrmDBPlatformObject;
+            
             Console.WriteLine("OrmDBPlatform 初始化了");
         }
 
@@ -92,9 +78,7 @@ namespace dotNetLab.Data.Orm
                 {
 
                     AppLogEntity entity = null;
-                    if (!this.FixThisOrmDBPlatformObject)
-                        entity = GetEntity<AppLogEntity>(LogFileDirPath);
-                    else
+                   
                         entity = new AppLogEntity(LogFileDirPath);
                     entity.LogFiredTime = DateTime.Now;
                     entity.Status = AppLogEntity.LogLevels.ERROR.ToString();
@@ -112,24 +96,19 @@ namespace dotNetLab.Data.Orm
 
         public  void LogInfo(String msg, String LogFileDirPath = null)
         {
-            if (AppLogEntity.LogEntityInfo == null&& !this.FixThisOrmDBPlatformObject)
+            
+            if (AppLogEntity.LogEntityInfo != null)
             {
-                AppLogEntity entity = null;
-                    entity = GetEntity<AppLogEntity>(LogFileDirPath);
-                
-            }
                 lock (AppLogEntity.LogEntityInfo)
                 {
                     AppLogEntity entity = null;
-                    if (!this.FixThisOrmDBPlatformObject)
-                        entity = GetEntity<AppLogEntity>(LogFileDirPath);
-                    else
-                        entity = new AppLogEntity(LogFileDirPath);
+                    entity = new AppLogEntity(LogFileDirPath);
 
                     entity.LogFiredTime = DateTime.Now;
                     entity.Status = AppLogEntity.LogLevels.INFO.ToString();
                     entity.Message = msg;
-                entity.Save(Entry.SaveMode.INSERT);
+                    entity.Save(Entry.SaveMode.INSERT);
+                }
             }
              
         }
@@ -140,6 +119,7 @@ namespace dotNetLab.Data.Orm
         /// </summary>
         /// <typeparam name="T">Entity</typeparam>
         /// <returns></returns>
+        [Obsolete("请不要使用")]
         public virtual T GetEntity<T>(params object [] args) where T : Entry
         {
             Entry entry = null;
@@ -155,12 +135,11 @@ namespace dotNetLab.Data.Orm
         /// </summary>
         void AssignMeToEntry()
         {
-            if (FixThisOrmDBPlatformObject)
-            {
+           
                 if (Entry_InternalOrmDBPlatform_FieldInfo == null)
                     Entry_InternalOrmDBPlatform_FieldInfo = typeof(Entry).GetField("InternalOrmDBPlatform", BindingFlags.NonPublic | BindingFlags.Static);
                 Entry_InternalOrmDBPlatform_FieldInfo.SetValue(null, this);
-            }
+          
            
             TableManager = new Dictionary<string, EntityInfo>();
            
@@ -228,20 +207,8 @@ namespace dotNetLab.Data.Orm
         /// <param name="EntitySourceAssembly">包含Entity类文件的程序集</param>
         public void CreateAllTable(Assembly EntitySourceAssembly)
         {
-            //创建应用程序表（键值对（用于存储配置等数据））
-             AddTable<dotNetLab.Data.Orm.AppEntity>() ;
-            //如果LightMode 为true 则只收集表信息
-            if (LightMode)
-            {
-                if (this.TableManager.Count == 0)
-                {
-                    if (BootDBAction == null)
-                        throw new Exception("在轻模式下需要手动将已经存在的\r\nOrmDBPlatform 对象的 TableManager 赋值过来！是否未启动数据库？");
-                    
-                       
-                }
-                return;
-            }
+            AddTable<AppEntity>();
+           
             if (EntitySourceAssembly != null)
             {
                 Type[] types = EntitySourceAssembly.GetTypes();
@@ -249,22 +216,48 @@ namespace dotNetLab.Data.Orm
                 {
                    
                     if (types[i].BaseType == null)
-                        return;
+                        continue;
                     if (types[i].BaseType.Equals(typeof(EntityBase)))
                     {
                         //检测实体类上的特性，如果特性中提示为手动创建表，则该表不会自动创建
                         //而应该手动创建
-                        EntityAttribute entityAttribute = types[i].GetCustomAttribute<EntityAttribute>();
-                        if (entityAttribute != null && entityAttribute.EntityDescription == EntityAttribute.MANUAL_CREATE_TABLE)
+                        EntityAttribute[] entityAttribute = types[i].GetCustomAttributes<EntityAttribute>();
+                        int index = -1;
+                        if (entityAttribute != null )
+                           index =entityAttribute.ToList().FindIndex(en => en.EntityActionType == EntityAttribute.ActionType.None && en.EntityDescription == EntityAttribute.MANUAL_CREATE_TABLE);
+                        if ( index >= 0)
                         {
                             continue;
                         }
                         //自动创建表
                         this.AddTable(types[i], null, true);
+                        
                     }
                 }
 
             }
+        }
+
+        /// <summary>
+        /// 提前准备多个连接对象
+        /// </summary>
+        /// <param name="nHow_Many_Connection_you_Want_To_Use"></param>
+        public void CacheConnectionPool(int nHow_Many_Connection_you_Want_To_Use)
+        {
+            for (int i = 0; i < nHow_Many_Connection_you_Want_To_Use; i++)
+            {
+              this.AdonetContext.ThisDbPipeInfo.NewCommandForReserving();
+
+            }
+        }
+        /// <summary>
+        /// 创建新DbCommand，也就是创建一个新的Connection
+        /// </summary>
+        /// <param name="connection">连接字符串，null-->使用当前默认的连接字符串</param>
+        /// <returns>新DbCommand</returns>
+        public DbCommand GetNewDbCommand(String connection=null)
+        {
+            return this.AdonetContext.ThisDbPipeInfo.NewCommandForReserving(connection); 
         }
 
         void Init(Type type_DBEngine, String DBName = "shikii", String usrName = "root",   String pwd = "123", params Assembly[] EntitySourceAssemblies)
@@ -294,8 +287,12 @@ namespace dotNetLab.Data.Orm
              
             }
 
-            if (EntitySourceAssemblies == null)
-                EntitySourceAssemblies = new Assembly[] { Assembly.GetEntryAssembly() };
+            Assembly asm = Assembly.GetEntryAssembly();
+            if (EntitySourceAssemblies == null || EntitySourceAssemblies.Length == 0)
+            {
+                EntitySourceAssemblies = new Assembly[1]  ;
+                EntitySourceAssemblies[0] = asm;
+            }
             
             for (int i = 0; i < EntitySourceAssemblies.Length; i++)
             {
@@ -334,8 +331,12 @@ namespace dotNetLab.Data.Orm
                    temp = ThisDBManager.Connect (type_DBEngine,ip, port, DBName, usrName, pwd);
                      
             }
-            if (EntitySourceAssemblies == null)
-                EntitySourceAssemblies = new Assembly[] { Assembly.GetEntryAssembly() };
+            Assembly asm = Assembly.GetEntryAssembly();
+            if (EntitySourceAssemblies == null || EntitySourceAssemblies.Length == 0)
+            {
+                EntitySourceAssemblies = new Assembly[1];
+                EntitySourceAssemblies[0] = asm;
+            }
             for (int i = 0; i < EntitySourceAssemblies.Length; i++)
             {
                 CreateAllTable(EntitySourceAssemblies[i]);
@@ -357,13 +358,28 @@ namespace dotNetLab.Data.Orm
           String GetEntityPropertyValue (Type type,Object obj)
         {
             String typeName = type.Name;
+            String val = null;
             switch (typeName)
             {
                
                 case "String":
-                    
+                      val = String.Format("'{0}'", MakeSingleQuotesSenseToDB(obj));
+                    return val;
                 case "DateTime":
-                     String val  =  String.Format("'{0}'", MakeSingleQuotesSenseToDB(obj));
+                    bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+                    if (!isLinux)
+                        val = String.Format("'{0}'", MakeSingleQuotesSenseToDB(obj));
+                    else
+                    {
+                        if (obj == null)
+                            return "''";
+                        val = ((DateTime)obj).ToString("yyyy-MM-dd HH:mm:ss");
+
+                        if (val != null && val.Contains("'"))
+                            val = val.Replace("\'", "\'\'");
+                         
+                        val = String.Format("'{0}'", val);
+                    }
                     return val;
                 default:
                     return obj.ToString();
@@ -446,9 +462,11 @@ namespace dotNetLab.Data.Orm
                 ITableInfo kv = AdonetContext as ITableInfo;
                 List<String> tbls = kv.GetAllTableNames( );
                 PropertyInfo[] pifs = EntityType.GetProperties();
-                if(recordEntityInfo)
-                this.TableManager.Add(tableName, GetEntityInfo(pifs));
-                
+                if (recordEntityInfo)
+                {
+                    if(!TableManager.Keys.Contains(tableName))
+                    this.TableManager.Add(tableName, GetEntityInfo(pifs));
+                }
 
                 String str = null;
 
@@ -515,7 +533,7 @@ namespace dotNetLab.Data.Orm
 
                             }
 
-                            lstColNames = kv.GetTableColumnNames(tableName);
+                            lstColNames = kv.GetTableColumnNames(tableName).ToList();
                             //是否有增加属性名的情况
                             if (lstColNames.Count != pifs.Length && pifs.Length > lstColNames.Count)
                             {
@@ -546,7 +564,7 @@ namespace dotNetLab.Data.Orm
                 }
                 List<String> ColumnNames = new List<string>();
                 List<String> ColumnTypes = new List<string>();
-                List<String> AttributeSet = new List<string>();
+                Dictionary<String,String> AttributeSet = new Dictionary<String, String>();
 
                 String MysqlForeignKey = null;
 
@@ -562,7 +580,7 @@ namespace dotNetLab.Data.Orm
                     if (att != null)
                     {
                         if (att.KeyDescription.Equals(DBKeyAttribute.PRIMARYKEY) || att.KeyDescription.Equals(DBKeyAttribute.UNIQUE))
-                            AttributeSet.Add(att.KeyDescription);
+                            AttributeSet.Add(item.Name,att.KeyDescription);
                         else if (att.KeyDescription.Equals(DBKeyAttribute.FOREIGN_KEY))
                         {
                             if (this.AdonetContext.GetType().Name.Equals("MySQLDBEngine")  )
@@ -572,7 +590,7 @@ namespace dotNetLab.Data.Orm
                             }
                             else if (AdonetContext.GetType().Name.Equals("PostgreSQLEngine"))
                             {
-                                AttributeSet.Add(
+                                AttributeSet.Add(item.Name,
                                     String.Format(DBKeyAttribute.POSTGRESQL_FOREIGN_KEY_FSTRING, att.ForeignKeyTable, att.PrimaryKeyName)
                                     );
                             }
@@ -582,8 +600,7 @@ namespace dotNetLab.Data.Orm
 
 
                     }
-                    else
-                        AttributeSet.Add("");
+                     
 
                     if (item.Name.Equals("Id"))
                     {
@@ -596,9 +613,9 @@ namespace dotNetLab.Data.Orm
                             ColumnTypes[ColumnTypes.Count - 1] = " INTEGER ";
 
                         if(att != null)
-                            AttributeSet[AttributeSet.Count-1] = AttributeSet[AttributeSet.Count - 1]+ GetAutoIncrementMark();
+                            AttributeSet[item.Name] = AttributeSet[item.Name] + GetAutoIncrementMark();
                         else
-                       AttributeSet.Add(GetAutoIncrementMark());
+                       AttributeSet.Add(item.Name,GetAutoIncrementMark());
                     }
 
                 }
@@ -608,7 +625,10 @@ namespace dotNetLab.Data.Orm
                 {
                     sb.Append(ColumnNames[i] + " ");
                     sb.Append(ColumnTypes[i] + " ");
-                    sb.Append(AttributeSet[i] + ",");
+                    if (AttributeSet.Keys.Contains(ColumnNames[i]))
+                        sb.Append(AttributeSet[ColumnNames[i]] + ",");
+                    else
+                        sb.Append(",");
 
                 }
                 //除掉逗号
@@ -618,6 +638,27 @@ namespace dotNetLab.Data.Orm
                     sb.AppendFormat(",{0} ", MysqlForeignKey);
             
                 AdonetContext.NewTable(tableName, sb.ToString() );
+
+                EntityAttribute[] entityAttributes = EntityType.GetCustomAttributes<EntityAttribute>();
+               
+                if (entityAttributes != null )
+                {
+
+                    for (int i = 0; i < entityAttributes.Length; i++)
+                    {
+                        if (entityAttributes[i] == null || entityAttributes[i].EntityActionType == EntityAttribute.ActionType.None)
+                            continue;
+                        else
+                        {
+                            String sql = entityAttributes[i].GetSqlTemplateString();
+                            sql = String.Format(sql, tableName);
+                            AdonetContext.ExecuteNonQuery(sql);
+                        }
+                    }
+
+                    
+                }
+
             }
             catch (Exception ex)
             {
@@ -761,7 +802,7 @@ namespace dotNetLab.Data.Orm
                 }
                 else
                 {
-                    sb.Remove(0, sb.Length);
+                    sb.Clear();
                     foreach (var item in pifs)
                     {
                         if (item.Name.Equals("Id"))
@@ -789,11 +830,7 @@ namespace dotNetLab.Data.Orm
                 return e;
             }
         }
-        protected void AssignValue(Object Host, String PropertyName, Object Value)
-        {
-            PropertyInfo pif = Host.GetType().GetProperty(PropertyName);
-            pif.SetValue(Host, Value, null);
-        }
+
         /// <summary>
         /// 高速场合保存新增记录（insert)
         /// </summary>
@@ -833,7 +870,7 @@ namespace dotNetLab.Data.Orm
                             //自动设置自增值 
                             if (this.AdonetContext.GetType().Name=="FireBirdEngine")
                             {
-                                FireBirdEngine fireBird = this.AdonetContext as FireBirdEngine ;
+                                dynamic fireBird = this.AdonetContext ;
                                 int id = fireBird.GetAuto_IncrementID(tableName, item.Name );
                                 item.SetValue(entity, id, null);
                             }
@@ -953,8 +990,6 @@ namespace dotNetLab.Data.Orm
        
                 
        }
-
-#if NET4
         /// <summary>
         /// 删除一条记录
         /// </summary>
@@ -962,18 +997,18 @@ namespace dotNetLab.Data.Orm
         /// <param name="HowToDelete">比如“delete from test where name='sfs'”则HowToDelete=(x)=> x.name='sfs'</param>
         /// <param name="TableName"></param>
         /// <param name="args"></param>
-        public void Delete<T>(Expression<Func<T, bool>> HowToDelete, String TableName = null) where T : EntityBase
+        public void Delete<T> (Expression<Func<T, bool>> HowToDelete, String TableName = null ) where T : EntityBase
         {
             Expression2SQL expression2SQL = new Expression2SQL();
 
 
-            String sql = expression2SQL.GetRawSql<T>(HowToDelete);
-
+           String sql = expression2SQL.GetRawSql<T>(HowToDelete);
+        
             String tableName = TableName;
             if (tableName == null)
                 tableName = GetTableName(typeof(T), null);
-            AdonetContext.RemoveRecord(tableName, sql);
-
+            AdonetContext.RemoveRecord(tableName, sql );
+            
         }
         public virtual List<T> Where<T>  (Expression<Func<T, bool>> WhererExpression
             ,String TableName=null  
@@ -989,7 +1024,7 @@ namespace dotNetLab.Data.Orm
             sql = "select * from " + tableName + " where " + sql;
             List<T> EntitySet = new List<T>();
             ITableInfo keyValueDB = AdonetContext as ITableInfo;
-            List<String> lstColNames = keyValueDB.GetTableColumnNames(tableName );
+            List<String> lstColNames = keyValueDB.GetTableColumnNames(tableName ).ToList();
 
             DbDataReader reader = AdonetContext.FastQueryData(sql );
             int nFileCount = reader.FieldCount;
@@ -1012,7 +1047,7 @@ namespace dotNetLab.Data.Orm
             reader.Close();
             return EntitySet ;
         }
-#endif
+
         /// <summary>
         /// 取出所有数据
         /// </summary>
@@ -1051,17 +1086,14 @@ namespace dotNetLab.Data.Orm
             return EntitySet;
         }
 
-#if NET4
         /// <summary>
-        /// 取出一行数据
-        /// </summary>
+        /// <para>取出一行数据</para>
         /// <typeparam name="T">Entity 数据类型</typeparam>
-        /// <param name="selectSQLExpression"></param>
-        /// <param name="FromSQLExpression"></param>
-        /// <param name="WhererExpression">筛选条件</param>
-        /// <param name="tableName"></param>
-        /// <param name="args"></param>
-        /// <returns></returns>
+        /// <param name="selectSQLExpression"><para></para>可以为空(为空时表示select * )</param>
+        /// <param name="FromSQLExpression"><para></para>可以为空(为空时表示 from 表名)</param>
+        /// <param name="WhererExpression"><para></para>筛选条件,可以为空(为空时表示"",不出现where 关键字）/param>
+        /// <param name="tableName"><para></para>指定其它的表名</param>
+        /// </summary>
         public virtual T WhereUniqueEntity<T>(Expression<Func<T, Entry>> selectSQLExpression, 
             Expression<Func<T, Entry>> FromSQLExpression = null, 
             Expression<Func<T, bool>> WhererExpression = null,String tableName = null
@@ -1113,7 +1145,11 @@ namespace dotNetLab.Data.Orm
             }
         }
       
-       
+        protected  void AssignValue(Object Host,String PropertyName, Object Value)
+        {
+            PropertyInfo pif = Host.GetType().GetProperty(PropertyName);
+            pif.SetValue(Host, Value,null);
+        }
         /// <summary>
         /// 查询表中部分列（需要自定义部分列类!请勿包含主键,可以更新数据）
         /// </summary>
@@ -1204,8 +1240,8 @@ namespace dotNetLab.Data.Orm
         /// <summary>
         /// 兼容以前的查询方式，灵活度最高
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="selectSQLExpression"></param>
+        /// <typeparam name="T">主要用于智能提示</typeparam>
+        /// <param name="selectSQLExpression">select </param>
         /// <param name="FromSQLExpression"></param>
         /// <param name="WhererExpression"></param>
         /// <param name="args"></param>
@@ -1270,7 +1306,7 @@ namespace dotNetLab.Data.Orm
             sqlStringBuilder.Clear();
             
         }
-#endif
+
         /// <summary>
         /// 是否包含该表
         /// </summary>
@@ -1303,13 +1339,11 @@ namespace dotNetLab.Data.Orm
         {
             this.AdonetContext.BatchExecuteNonQuery(_conn,actions);
         }
-#if NET4
 
         /// <summary>
-            /// 从数据库App表中取出json数据并转化为dynamic对象
-            /// </summary>
-            /// <param name="dynamicObjectName">dynamic对象名请使用nameof(...)</param>
-            /// <param name="dyn_Obj">dynamic对象</param>
+        /// <para>从数据库App表中取出json数据并转化为dynamic对象</para>  
+        /// <param name="dyn_Obj">dynamic对象名请使用nameof(...),请在传入之前初始化</param>
+        /// </summary>
         public void FetchDynamicObject(System.Dynamic.ExpandoObject dyn_Obj )
         {
 
@@ -1332,7 +1366,6 @@ namespace dotNetLab.Data.Orm
             }
         }
 
-
         /// <summary>
         /// 保存dynamic 数据
         /// 往数据库的App表中写入转化json数据的dynamic对象
@@ -1353,7 +1386,6 @@ namespace dotNetLab.Data.Orm
             }
             AdonetContext.Write(UniqueName, LitJson.JsonMapper.ToJson(dyn_Obj));
         }
-#endif
 
         /// <summary>
         /// 仅为作者使用(可以用来连接sqlite/firebird 嵌入式数据库);
@@ -1434,7 +1466,92 @@ namespace dotNetLab.Data.Orm
         /// </summary>
         public bool Connect(String DBName = "shikii", String usrName = "root", String pwd = "123")
         {
-            return Connect(DBName, usrName, pwd,null);
+            Func<Type> GetEngineType = () =>
+            {
+                if (this.type_EngineType != null)
+                    return this.type_EngineType;
+
+                String path = Assembly.GetCallingAssembly().Location;
+                path = Path.GetDirectoryName(path);
+                String[] dllFiles = Directory.GetFiles(path, "*.dll");
+
+                Type type_DBEngine = null;
+
+                for (int i = 0; i < dllFiles.Length; i++)
+                {
+
+                    String dllProductName = GetADONETDllProductName(dllFiles[i]);
+                    if (dllProductName.Contains("Npgsql"))
+                    {
+                        type_DBEngine = typeof(PostgreSQLEngine);
+                        break;
+
+                    }
+                    else if (dllProductName.Contains("SQLite"))
+                    {
+                        type_DBEngine = typeof(SQLiteDBEngine);
+                        break;
+                    }
+                    else if (dllProductName.Contains("MySql"))
+                    {
+                        type_DBEngine = typeof(MySQLDBEngine);
+                        break;
+                    }
+                    else if (dllProductName.Contains("FirebirdClient"))
+                    {
+                        type_DBEngine = typeof(FireBirdEngine);
+                        break;
+                    }
+                    else if (dllProductName.Contains("Microsoft") && dllProductName.Contains("Compact"))
+                    {
+                        type_DBEngine = typeof(SQLCEDBEngine);
+                        break;
+                    }
+
+                }
+
+                return type_DBEngine;
+            };
+
+            bool temp = false;
+            if (ThisDBManager == null)
+            {
+                AssignMeToEntry();
+                Type type = GetEngineType();
+                Init(type, DBName, usrName, pwd, null);
+                EndInit();
+                temp = IsConnected;
+            }
+
+            else
+            {
+
+                Type type_DBEngine = GetEngineType();
+
+                if (type_DBEngine == typeof(SQLiteDBEngine))
+                {
+
+                    if (!DBName.EndsWith(".db"))
+                        DBName = DBName + ".db";
+                    temp = ThisDBManager.Connect(DBName);
+
+                }
+                else if (type_DBEngine.Name == "SQLCEDBEngine")
+                {
+                    if (!DBName.EndsWith(".sdf"))
+                        DBName = DBName + ".sdf";
+                    temp = ThisDBManager.Connect(DBName, true);
+
+                }
+                else
+                {
+                    temp = ThisDBManager.Connect(type_DBEngine, DBName, usrName, pwd);
+
+                }
+
+            }
+
+            return temp;
         }
 
         /// <summary>
@@ -1449,7 +1566,7 @@ namespace dotNetLab.Data.Orm
         public bool Connect(String DBName = "shikii", String usrName = "root", String pwd = "123",
             params Assembly[] EntitySourceAssemblies)
         {
-        BootDBEngine:;
+    
             Func<Type> GetEngineType = () =>
             {
                 if (this.type_EngineType != null)
@@ -1534,13 +1651,115 @@ namespace dotNetLab.Data.Orm
                 }
               
             }
-            if (BootDBAction != null && temp == null)
-            {
-                BootDBAction.Invoke(this);
-                goto BootDBEngine;
-            }
+          
             return temp;
         }
+
+
+        /// <summary>
+        /// ！！！注意不支持sql server,localdb！！！
+        /// 初始化数据平台(不必手动调用AddTable,会自动查找继承自EntityBase的Entity,然后再创建相应的表)
+        /// 假设你使用使用默认端口
+        /// firebird(默认使用嵌入模式，服务器模式需要先设置 FireBirdEngine EmbeddedMode = false;),mysql
+        /// </summary>
+        /// <param name="type_DBEngine">比如：typeof(SQLiteDBEngine)</param>
+        /// <param name="EntitySourceAssemblies">存在Entity的程序集</param>
+        public bool Connect(String ip, String DBName = "shikii", String usrName = "root", String pwd = "123", params Assembly[] EntitySourceAssemblies)
+        {
+            Func<Type> GetEngineType = () =>
+            {
+                if (this.type_EngineType != null)
+                    return this.type_EngineType;
+
+                String path = Assembly.GetCallingAssembly().Location;
+                path = Path.GetDirectoryName(path);
+                String[] dllFiles = Directory.GetFiles(path, "*.dll");
+
+                Type type_DBEngine = null;
+
+                for (int i = 0; i < dllFiles.Length; i++)
+                {
+
+                    String dllProductName = GetADONETDllProductName(dllFiles[i]);
+                    if (dllProductName.Contains("Npgsql"))
+                    {
+                        type_DBEngine = typeof(PostgreSQLEngine);
+                        break;
+
+                    }
+                    else if (dllProductName.Contains("SQLite"))
+                    {
+                        type_DBEngine = typeof(SQLiteDBEngine);
+                        break;
+                    }
+                    else if (dllProductName.Contains("MySql"))
+                    {
+                        type_DBEngine = typeof(MySQLDBEngine);
+                        break;
+                    }
+                    else if (dllProductName.Contains("FirebirdClient"))
+                    {
+                        type_DBEngine = typeof(FireBirdEngine);
+                        break;
+                    }
+                    else if (dllProductName.Contains("Microsoft") && dllProductName.Contains("Compact"))
+                    {
+                        type_DBEngine = typeof(SQLCEDBEngine);
+                        break;
+                    }
+
+                }
+
+                return type_DBEngine;
+            };
+
+            bool temp = false;
+            if (ThisDBManager == null)
+            {
+                AssignMeToEntry();
+                Type type = GetEngineType();
+                int nport = 0;
+                if (type == typeof(MySQLDBEngine))
+                    nport = 3306;
+                else if (type == typeof(PostgreSQLEngine))
+                    nport = 5432;
+                Init(type,ip,nport, DBName, usrName, pwd, EntitySourceAssemblies);
+                EndInit();
+                temp = IsConnected;
+            }
+
+            else
+            {
+
+                Type type_DBEngine = GetEngineType();
+
+                if (type_DBEngine == typeof(SQLiteDBEngine))
+                {
+
+                    if (!DBName.EndsWith(".db"))
+                        DBName = DBName + ".db";
+                    temp = ThisDBManager.Connect(DBName);
+
+                }
+                else if (type_DBEngine.Name == "SQLCEDBEngine")
+                {
+                    if (!DBName.EndsWith(".sdf"))
+                        DBName = DBName + ".sdf";
+                    temp = ThisDBManager.Connect(DBName, true);
+
+                }
+                else
+                {
+                    temp = ThisDBManager.Connect(type_DBEngine, DBName, usrName, pwd);
+
+                }
+
+            }
+
+            return temp;
+
+        }
+
         /// <summary>
         /// ！！！注意不支持sql server,localdb！！！
         /// 初始化数据平台(不必手动调用AddTable,会自动查找继承自EntityBase的Entity,然后再创建相应的表)
@@ -1550,7 +1769,7 @@ namespace dotNetLab.Data.Orm
         /// <param name="EntitySourceAssemblies">存在Entity的程序集</param>
         public bool Connect(Type type_DBEngine, String DBName = "shikii", String usrName = "root", String pwd = "123", params Assembly[] EntitySourceAssemblies)
         {
-            BootDBEngine:;
+            
             bool temp = false;
             if (ThisDBManager == null)
             {
@@ -1584,11 +1803,7 @@ namespace dotNetLab.Data.Orm
                 }
             }
 
-            if (BootDBAction != null && temp == null)
-            {
-                BootDBAction.Invoke(this);
-                goto BootDBEngine;
-            }
+         
             return temp;
         }
         /// <summary>
@@ -1600,12 +1815,12 @@ namespace dotNetLab.Data.Orm
         /// <param name="EntitySourceAssemblies">存在Entity的程序集</param>
         public bool Connect(Type type_DBEngine, String ip, int port, String DBName = "shikii", String pwd = "123", String usrName = "root", params Assembly[] EntitySourceAssemblies)
         {
-            BootDBEngine:;
+       
             bool temp = false;
             if (ThisDBManager == null)
             {
                 AssignMeToEntry();
-                Init(type_DBEngine, ip, port, DBName, usrName, pwd, EntitySourceAssemblies);
+                Init(type_DBEngine, ip, port, DBName, pwd, usrName, EntitySourceAssemblies);
                
                  
                 EndInit();
@@ -1634,11 +1849,7 @@ namespace dotNetLab.Data.Orm
                     
                 }
             }
-             if (BootDBAction != null && temp == null)
-                {
-                BootDBAction.Invoke(this);
-                goto BootDBEngine;
-            }
+             
 
             return temp;
 

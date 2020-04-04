@@ -6,6 +6,7 @@ using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
  
@@ -28,7 +29,7 @@ namespace dotNetLab.Data
             dbconnection.ConnectionString = connectstring;
             if (!this.Connect(dbconnection))
                 return false;
-            List<String> allDBNames = this.GetAllDBNames() ;
+            List<String> allDBNames = this.GetAllDBNames()?.ToList();
                 bool b = allDBNames.Contains(dbName.ToLower());
                 if (!b)
                     NewDB(dbName );
@@ -54,7 +55,7 @@ namespace dotNetLab.Data
             bool bconn = this.Connect(dbconnection);
             if (bconn)
             {
-                List<String> allDBNames = this.GetAllDBNames() ;
+                List<String> allDBNames = this.GetAllDBNames()?.ToList();
                 bool b = allDBNames.Contains(dbName.ToLower());
                 if (!b)
                     NewDB(dbName);

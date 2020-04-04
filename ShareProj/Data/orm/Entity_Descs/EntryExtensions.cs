@@ -1,5 +1,6 @@
 ﻿﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace dotNetLab.Data.Orm
@@ -163,6 +164,7 @@ namespace dotNetLab.Data.Orm
 
         /// <summary>
         /// 形成sql 无意义
+        /// 从上到下降序，这意味着最上面一个是最大的值 
         /// </summary>
         /// <param name="obj"></param>
         /// <param name="Target"></param>
@@ -212,6 +214,7 @@ namespace dotNetLab.Data.Orm
 
         /// <summary>
         /// 形成sql 无意义
+        /// 从上到下升序，这意味着最下面一个是最大的值 
         /// </summary>
         public static Entry OrderByASC(this Entry entry,object Target)
         {

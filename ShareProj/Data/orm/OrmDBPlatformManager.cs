@@ -4,10 +4,8 @@ using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
 using System.IO;
-#if NET4
 using System.Linq;
 using System.Linq.Expressions;
-#endif
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -18,12 +16,12 @@ namespace dotNetLab.Data.Orm
     public class OrmDBPlatformManager
     {
         public OrmDBPlatform MainDbOrmPlatform;
-        public Dictionary<int, OrmDBPlatform> DBPipeHashCodes;
-        public Dictionary<OrmDBPlatform, bool> DBPipes;
-        public int MaxDBPipeCount = 10;
-        public int MinDBPipeCount = 2;
-        public int DBPipeCount = 0;
-        static readonly Object lockDBPipeInjection = new Object();
+        //public Dictionary<int, OrmDBPlatform> DBPipeHashCodes;
+       // public Dictionary<OrmDBPlatform, bool> DBPipes;
+        //public int MaxDBPipeCount = 200;
+        //public int MinDBPipeCount = 0;
+        //public int DBPipeCount = 0;
+      //  static readonly Object lockDBPipeInjection = new Object();
         public Dictionary<Type, PropertyInfo[]> InjectingPropertyInfos;
         Func<OrmDBPlatform, bool> ConnectDBAction;
         public Queue<Exception> ErrorMessageQueue;
@@ -40,7 +38,6 @@ namespace dotNetLab.Data.Orm
                 bool b = WebApiControllerBaseType.IsAssignableFrom(item);
                 if (b)
                 {
-                     
                     List<PropertyInfo> propertyInfos = new List<PropertyInfo>();
                     PropertyInfo[] pifs = item.GetProperties();
                     foreach (var pif in pifs)
@@ -68,17 +65,18 @@ namespace dotNetLab.Data.Orm
             InfoLogMessageQueue = new Queue<string>();
 
             this.ConnectDBAction = ConnectDBAction;
+            
             this.type_App = type_App;
-            DBPipes = new Dictionary<OrmDBPlatform, bool>();
-            DBPipeHashCodes = new Dictionary<int, OrmDBPlatform>();
+            //DBPipes = new Dictionary<OrmDBPlatform, bool>();
+            //DBPipeHashCodes = new Dictionary<int, OrmDBPlatform>();
             InjectingPropertyInfos = new Dictionary<Type, PropertyInfo[]>();
 
             GetMainDbContext();
             GetInjectingPropertyInfos(WebApiControllerBaseType, AttributeType);
-            for (int i = 0; i < MinDBPipeCount; i++)
-            {
-                GetFastDbContext(false);
-            }
+            //for (int i = 0; i < MinDBPipeCount; i++)
+            //{
+            //    GetFastDbContext(false);
+            //}
         }
 
         void AssignLogHandler(OrmDBPlatform orm)
@@ -96,8 +94,7 @@ namespace dotNetLab.Data.Orm
 
         void BeginMeasureDBConnectTime()
         {
-            DBConnectStopwatch.Reset();
-            DBConnectStopwatch.Start();
+            DBConnectStopwatch.Restart();
         }
 
         void EndMeasureDBConnectTime()
@@ -107,28 +104,7 @@ namespace dotNetLab.Data.Orm
             Console.WriteLine("连接数据库耗时：" + DBConnectStopwatch.ElapsedMilliseconds + " ms");
         }
 
-        /// <summary>
-        /// 初始化主数据库用于局部的数据库上下文
-        /// 用于各WebAPI
-        /// </summary>
-        public OrmDBPlatform GetFastDbContext(bool _lock = true)
-        {
-            OrmDBPlatform orm = new OrmDBPlatform(false);
-            AssignLogHandler(orm);
-            orm.type_EngineType = MainDbOrmPlatform.AdonetContext.GetType();
-            orm.TableManager = MainDbOrmPlatform.TableManager;
-            orm.LightMode = true;
-            BeginMeasureDBConnectTime();
-            bool bconn = (bool)ConnectDBAction?.Invoke(orm);
-            EndMeasureDBConnectTime();
-            if (bconn)
-                InfoLogMessageQueue.Enqueue($"连接{MainDbOrmPlatform.AdonetContext.GetType().Name}数据库引擎成功");
-            else
-                ErrorMessageQueue.Enqueue(new Exception($"连接{MainDbOrmPlatform.AdonetContext.GetType().Name}数据库引擎失败"));
-            DBPipes.Add(orm, _lock);
-            DBPipeHashCodes.Add(orm.GetHashCode(), orm);
-            return orm;
-        }
+
         /// <summary>
         /// 初始化主数据库用于全局使用数据库
         /// 这个对象会把所有实体映射为表
@@ -136,7 +112,7 @@ namespace dotNetLab.Data.Orm
         /// </summary>
         void GetMainDbContext()
         {
-            MainDbOrmPlatform = new OrmDBPlatform(false);
+            MainDbOrmPlatform = new OrmDBPlatform();
             AssignLogHandler(MainDbOrmPlatform);
             BeginMeasureDBConnectTime();
             bool args = (bool)ConnectDBAction?.Invoke(MainDbOrmPlatform);
@@ -148,6 +124,18 @@ namespace dotNetLab.Data.Orm
            
         }
 
+     
+
+
+
+        #endregion
+    }
+}
+
+
+/*
+    #region 弃用的
+        [Obsolete("请不要使用这个方法，因为使用这个方法会导致很严重的bug")]
         public OrmDBPlatform AutoGetOrmDBPlatform()
         {
 
@@ -187,10 +175,33 @@ namespace dotNetLab.Data.Orm
                 }
                 return _orm;
             }
+
         }
 
-
+        /// <summary>
+        /// 初始化主数据库用于局部的数据库上下文
+        /// 用于各WebAPI
+        /// </summary>
+        [Obsolete("请不要使用这个方法，因为使用这个方法会导致很严重的bug")]
+        public OrmDBPlatform GetFastDbContext(bool _lock = true)
+        {
+            OrmDBPlatform orm = new OrmDBPlatform(false);
+            AssignLogHandler(orm);
+            orm.type_EngineType = MainDbOrmPlatform.AdonetContext.GetType();
+            orm.TableManager = MainDbOrmPlatform.TableManager;
+            orm.LightMode = true;
+            BeginMeasureDBConnectTime();
+            bool bconn = (bool)ConnectDBAction?.Invoke(orm);
+            EndMeasureDBConnectTime();
+            if (bconn)
+                InfoLogMessageQueue.Enqueue($"连接{MainDbOrmPlatform.AdonetContext.GetType().Name}数据库引擎成功");
+            else
+                ErrorMessageQueue.Enqueue(new Exception($"连接{MainDbOrmPlatform.AdonetContext.GetType().Name}数据库引擎失败"));
+            //DBPipes.Add(orm, _lock);
+            //DBPipeHashCodes.Add(orm.GetHashCode(), orm);
+            return orm;
+        }
 
         #endregion
-    }
-}
+
+     */

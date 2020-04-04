@@ -282,7 +282,6 @@ namespace dotNetLab.Data
         {
             AppendUniqueItem(DefaultTable, strLabelName, obj);
         }
-#if NET4
         public void AppendDynamicItem(String strTableName, String strLabelName, dynamic obj,bool ElementCanRepeat)
         {
             
@@ -298,7 +297,6 @@ namespace dotNetLab.Data
                     AppendUniqueItem(strTableName, strLabelName, o.ToString());
             }
         }
-
         public void AppendDynamicItem(String strLabelName, dynamic obj, bool ElementCanRepeat)
         {
             Type type = obj.GetType();
@@ -314,8 +312,6 @@ namespace dotNetLab.Data
                     AppendUniqueItem(DefaultTable, strLabelName, o.ToString());
             }
         }
-#endif
-
         public String[] FetchArray(string strLabelName)
         {
 

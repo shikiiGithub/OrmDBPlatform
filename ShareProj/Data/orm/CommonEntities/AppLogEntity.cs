@@ -8,6 +8,7 @@ namespace dotNetLab.Data.Orm
     /// <summary>
     /// 记录应用程序产生的错误日志到数据库中
     /// </summary>
+   [Entity("MANUAL_CREATE_TABLE")]
   public  class AppLogEntity : EntityBase
     {
         public String LogFileDirPath = "Logs";

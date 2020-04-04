@@ -4,9 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.IO;
-#if NET4
 using System.Linq;
-#endif
 using System.Reflection;
 using System.Text;
  
@@ -49,7 +47,7 @@ namespace dotNetLab.Common
                 return null;
         }
 
-         public static T GetCustomAttribute<T>(this Type type) where T : Attribute
+        public static T GetCustomAttribute<T>(this Type type) where T : Attribute
         {
             Object [] objs = type.GetCustomAttributes(true);
 
@@ -64,13 +62,100 @@ namespace dotNetLab.Common
         
         }
 
-
-#if NET2
-        public static void Clear  (this StringBuilder sb)
+        public static T[] GetCustomAttributes<T>(this Type type) where T : Attribute
         {
-            sb.Remove(0, sb.Length);
+            Object[] objs = type.GetCustomAttributes(true);
+            if (objs == null ||objs.Length <1)
+                return null;
+
+            T[] arr = new T[objs.Length];
+            int n = 0;
+            foreach (var item in objs)
+            {
+                arr[n++] = (T)item;
+                
+            }
+
+            return arr;
+
         }
-#endif
+
+        /// <summary>
+        /// 可用于分页，分割数组
+        /// </summary>
+        /// <typeparam name="T">元素类型</typeparam>
+        /// <param name="ElementAmountPerBlock">每个块的元素数量</param>
+        /// <param name="BlockIndex">块的索引</param>
+        /// <returns>数组</returns>
+        public static T[] ToIndexArray<T>(this IEnumerable<T> ts,
+               int ElementAmountPerBlock, int BlockIndex)
+        {
+            int SourceAmount = ts.Count();
+
+            //总页数
+            int parts = (int)Math.Ceiling((SourceAmount * 1.0f) / (ElementAmountPerBlock * 1.0f));
+
+
+            if (BlockIndex >= parts)
+                BlockIndex = parts - 1;
+
+            if (BlockIndex <= 0)
+                BlockIndex = 0;
+
+
+            int nindex = ElementAmountPerBlock * BlockIndex;
+            int ncount = 0;
+
+            if (0 == nindex && parts == 1)
+            {
+                if (SourceAmount < ElementAmountPerBlock)
+                    ncount = SourceAmount;
+
+            }
+            else if (nindex == parts - 1)
+            {
+                if (SourceAmount < ElementAmountPerBlock * parts)
+                {
+                    ncount = SourceAmount - (parts - 1) * ElementAmountPerBlock;
+                }
+            }
+
+            else
+            {
+                ncount = ElementAmountPerBlock;
+            }
+
+            ncount -= 1;
+
+            T[] arr = new T[ncount];
+
+            T[] src = ts.ToArray();
+            for (int i = nindex; i < nindex + ncount; i++)
+            {
+                arr[i - nindex] = src[i];
+            }
+            return arr;
+
+        }
+
+
+        /// <summary>
+        /// 截取字符串
+        /// </summary>
+        /// <param name="s"></param>
+        /// <param name="index">首索引</param>
+        /// <param name="end">终索引</param>
+        /// <param name="ExceptEndIndex">终索引是否包含在内（默认包含）</param>
+        /// <returns></returns>
+        public static String SubString(this String s,long index,long end,bool ExceptEndIndex = false)
+        {
+            if (ExceptEndIndex)
+                return s.Substring((int)index, (int)(end - index + 1));
+            else
+                return s.Substring((int)index, (int)(end - index));
+
+        }
+
         /// <summary>
         /// 形成sql 无意义
         /// </summary>
@@ -98,30 +183,12 @@ namespace dotNetLab.Common
      
         public static bool IsValideString(this String str, bool CheckWhiteSpace = false )
         {
-#if NET4
             return !String.IsNullOrEmpty(str) && !String.IsNullOrWhiteSpace(str);
-#endif
-#if NET2
-            return !String.IsNullOrEmpty(str) && str != " ";
-#endif
         }
 
-#if NET2
-        public static int Count<T>(this IEnumerable<T> array)
-        {
-            IEnumerator en = array.GetEnumerator();
-            int n = 0;
-            while (en.MoveNext())
-            {
-                n++;
-            }
-            return 0;
-        }
-#endif
         public static String ConnectAll<T>(this IEnumerable<T> array,String gapStr)
         {
            int n =  array.Count();
-            
             StringBuilder sb = new StringBuilder();
             if (n > 0)
             {

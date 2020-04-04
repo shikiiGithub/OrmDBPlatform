@@ -20,6 +20,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Data\orm\Attributes\DBKeyAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Data\orm\Attributes\DBTypeAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Data\orm\Attributes\FireBirdTextTypeAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\orm\Attributes\JsonMapAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Data\orm\Attributes\MySqlTextTypeAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Data\orm\Attributes\OrmAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Data\orm\Attributes\PostgresqlTextTypeAttribute.cs" />
@@ -42,13 +43,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)Data\Root\DBPlatform.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Data\Root\DbPlatformRoot.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Data\Root\DBPlatform_Embedded.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\CoreWebServer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Networking\FTPService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Networking\TClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Networking\TCPBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Networking\TCPPool.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Networking\TCPServer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)兼容\DelegateExtension.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)兼容\ExtensionAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)加密与解密\Encrypt.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)反射\Invoker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)存储引擎\StorageEngine.cs" />
@@ -66,5 +66,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)日志\LitJson\Lexer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)日志\LitJson\ParserToken.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)日志\LogEntity.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="$(MSBuildThisFileDirectory)反射相关.txt" />
+    <Content Include="$(MSBuildThisFileDirectory)注意.txt" />
   </ItemGroup>
 </Project>
