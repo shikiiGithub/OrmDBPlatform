@@ -3,7 +3,7 @@
 跨平台极轻.net Orm框架（联系：shikii@outlook.com 或者在Issues上提问）
 
 ## 支持特性
-### 1.net framework 最小支持到4.0(.net framework 2.0的库功能不完整,请勿使用)， .net core/standard 支持到2.0 
+### 1.net framework 最小支持到4.0， .net core/standard 支持到2.0或者2.0以上
 
 ### 2 支持桌面/移动（Xamarin）开发
 ### 3.支持关系数据库有 SQL Server/LocalDB/Firebird/MySQL/Postgresql/SQLCE/Sqlite
@@ -15,8 +15,6 @@
 ## 开始使用
    ### 1.最简单的使用是使用nuget添加你想连接数据库的Data Provider的引用，比如搜索 Mysql 然后安装，安装完成后初始化
 ```c#
-       //这种方式针对于没有并发的，简单同步的场合
-       //应用于并发，异步的场合请使用 “OrmDB = new OrmDBPlatform(false); ”
         OrmDB = new OrmDBPlatform();
 
          //监控错误，将日志同时写入Console/db/文本文件中 
@@ -26,11 +24,11 @@
 
 
         //shikii 为数据库名 root 为用户名 123为密码
-        //默认使用本地的数据库
+        //默认使用本地的数据库（不适用SQL Server /LocalDB）
         //EntitySourceAssemblies 表示实体类所在的Assembly,默认使用当前程序集
         bool isConnected = OrmDB.Connect("shikii",  "root","123");
         
-        //远程访问则请使用
+        //远程访问则请使用（不适用SQL Server /LocalDB）
          bool isConnected = OrmDB.Connect(  typeof(MySQLDBEngine),  ip,  port,"shikii",  "123",  "root") ;
 
          //如果使用sqlite/sqlce 
@@ -62,14 +60,8 @@
    ```
 ### 3.增
  ```c#
-          //这种方法针对于没有并发的，简单同步的场合
-          //比如在Xamarin 中使用
+       
               SampleEntity se = new SampleEntity() ;
-              se.Name="Google" ;
-              se.XDesc="Fuck Google" ;
-              se.Save() ;
-            //在并发/异步的场合：
-            SampleEntity se =  OrmDB.GetEntity<SampleEntity>() ;
               se.Name="Google" ;
               se.XDesc="Fuck Google" ;
               se.Save() ;
