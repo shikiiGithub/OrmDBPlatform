@@ -1,6 +1,6 @@
-# OrmDBPlatform
+# OrmDBPlatform(文档持续更新中)
 
-跨平台极轻.net Orm框架（联系：shikii@outlook.com 或者在Issues上提问）
+跨平台极轻.net Orm框架,内置简单的多并发处理（联系：shikii@outlook.com 或者在Issues上提问）
 
 ## 支持特性
 ### 1.net framework 最低支持到4.0，.net core/standard 支持到2.0或者2.0以上
@@ -41,7 +41,14 @@
          //本地连接localhost
          bool isConnected = OrmDB.Connect(   asm_SQLSEVER,  "shikii", "sa",  "123") ;
          //远程连接
-         bool isConnected = OrmDB.Connect(   asm_SQLSEVER, ip,port, "shikii",  "123", "sa") ;
+          bool isConnected = OrmDB.Connect(   asm_SQLSEVER, ip,port, "shikii",  "123", "sa") ;
+         //并发处理(可以提前准备多个备用连接，然后OrmDBPlatform 库会智能管理你所创建的连接)
+        //也可以不显式指定，OrmDBPlatform库会根据情况自动增加连接数并循环利用
+        //显式指定的好处是可以更快的响应并发。（可以使用并行来察看并发处理的效果）
+        for(int i = 0;i< 你定义备用连接数;i++);
+        DbCommand dbcom = GetNewDbCommand();
+     
+        
    
 ```
    ### 2.新建立Entities（可自己命名） 文件夹，在Entities下新建 SampleEntity 类，这将在OrmDBPlatform.Connect 后创建名为Sample的表，请注意必须继承自EntityBase
