@@ -53,14 +53,22 @@
 ```
    ### 2.新建立Entities（可自己命名） 文件夹，在Entities下新建 SampleEntity 类，这将在OrmDBPlatform.Connect 后创建名为Sample的表，请注意必须继承自EntityBase
    ```c#
+      //!!!一定要有主键!!! !!!一定要有主键!!! !!!一定要有主键!!! 重要的事情说三遍
       //可以使用  [Entity("MANUAL_CREATE_TABLE")] 来手动创建此表 
       //默认自动创建，此外使用Entity特性可以在创建表后执行特定任务
       //比如：[Entity(EntityAttribute.ActionType.Alter, "add unique (MessageContent,MessageRecordTime)")]
       //这将在创建完表后执行sql 语句（添加唯一键）
       //不支持命名自定义表名
+      
       public class SampleEntity : EntityBase
       {
-          [DBKey] //设置主键，也可以设置外键
+          //当使用Id作为自增字段时一定要加[DBKey] 
+          //并非是我这么规则而是各数据库这么规定
+          //当字段中出现Id时会默认视其为自增字段，可以不用给值
+          //[DBKey]  
+          //public int Id{get;set;}
+          
+         [DBKey] //设置主键，也可以设置外键
           public String Name{get;set;}  
           //指定字符串长度（不需要显示使用，默认使用[MySqlTextTypeAttribute("varchar(255)")]）
          //可以将多个特性用于一个字段，这样有利于适配更多数据库 
