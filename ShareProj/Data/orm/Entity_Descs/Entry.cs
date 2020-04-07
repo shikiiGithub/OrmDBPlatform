@@ -54,17 +54,28 @@ namespace dotNetLab.Data.Orm
                 pif = this.pifs[nIndex];
             try
             {
-                if (PropertyName.Equals("Id") )
+                if (PropertyName.Equals("Id"))
                 {
-                    if(this.OrmHost.AdonetContext.GetType().Equals("SQLiteDBEngine"))
-                      pif.SetValue(this, (int)obj, null);
-                    else 
+                    if (this.OrmHost.AdonetContext.GetType().Equals("SQLiteDBEngine"))
+                        pif.SetValue(this, (int)obj, null);
+                    else
                         pif.SetValue(this, (int)obj, null);
 
 
                 }
                 else
+                {
+                    if(pif.PropertyType.Name == "Boolean")
+                    {
+
+
+                       obj  = Convert.ToBoolean(obj);
+
+                        pif.SetValue(this, obj, null);
+                    }
+                    else
                     pif.SetValue(this, obj, null);
+                }
             }
             catch (Exception ex)
             {

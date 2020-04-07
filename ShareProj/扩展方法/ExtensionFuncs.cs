@@ -91,11 +91,14 @@ namespace dotNetLab.Common
                int ElementAmountPerBlock, int BlockIndex)
         {
             int SourceAmount = ts.Count();
+            if (SourceAmount == 0)
+                return null;
 
             //总页数
-            int parts = (int)Math.Ceiling((SourceAmount * 1.0f) / (ElementAmountPerBlock * 1.0f));
 
-
+            int parts = SourceAmount / ElementAmountPerBlock;
+            if (SourceAmount % ElementAmountPerBlock != 0)
+                parts += 1;
             if (BlockIndex >= parts)
                 BlockIndex = parts - 1;
 
@@ -103,21 +106,23 @@ namespace dotNetLab.Common
                 BlockIndex = 0;
 
 
-            int nindex = ElementAmountPerBlock * BlockIndex;
+            int nBegineIndex = ElementAmountPerBlock * BlockIndex;
             int ncount = 0;
 
-            if (0 == nindex && parts == 1)
+            if (0 == BlockIndex && parts == 1)
             {
                 if (SourceAmount < ElementAmountPerBlock)
                     ncount = SourceAmount;
 
             }
-            else if (nindex == parts - 1)
+            else if (BlockIndex == parts - 1)
             {
                 if (SourceAmount < ElementAmountPerBlock * parts)
                 {
                     ncount = SourceAmount - (parts - 1) * ElementAmountPerBlock;
                 }
+                else
+                    ncount = ElementAmountPerBlock;
             }
 
             else
@@ -125,14 +130,15 @@ namespace dotNetLab.Common
                 ncount = ElementAmountPerBlock;
             }
 
-            ncount -= 1;
+            
 
             T[] arr = new T[ncount];
 
             T[] src = ts.ToArray();
-            for (int i = nindex; i < nindex + ncount; i++)
+            
+            for (int i = nBegineIndex; i < nBegineIndex + ncount; i++)
             {
-                arr[i - nindex] = src[i];
+                arr[i - nBegineIndex] = src[i];
             }
             return arr;
 

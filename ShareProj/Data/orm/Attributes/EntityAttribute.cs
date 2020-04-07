@@ -15,7 +15,7 @@ namespace dotNetLab.Data.Orm
             this.EntityDescription = EntityDescription;
 
         }
-        public EntityAttribute(String EntityDescription, ActionType actionType)
+        public EntityAttribute(ActionType actionType,String EntityDescription )
         {
             this.EntityDescription = EntityDescription;
             this.EntityActionType = actionType;

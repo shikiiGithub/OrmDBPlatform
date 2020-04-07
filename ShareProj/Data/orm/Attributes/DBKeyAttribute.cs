@@ -16,6 +16,7 @@ namespace dotNetLab.Data.Orm
         public static readonly string POSTGRESQL_FOREIGN_KEY_FSTRING = " references {0}({1}) ";
         public static readonly string MYSQL_FOREIGN_KEY_FSTRING = " FOREIGN KEY({0}) references {1}({2}) ";
         public static readonly string SQLSERVER_FOREIGN_KEY_FSTRING = "FOREIGN KEY REFERENCES {1}({2}) ";
+     
         public String ForeignKeyTable, PrimaryKeyName;
 
         public DBKeyAttribute(String KeyDescription = " Primary Key " )

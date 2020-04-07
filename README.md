@@ -3,7 +3,7 @@
 跨平台极轻.net Orm框架（联系：shikii@outlook.com 或者在Issues上提问）
 
 ## 支持特性
-### 1.net framework 最小支持到4.0， .net core/standard 支持到2.0或者2.0以上
+### 1.net framework 最低支持到4.0，.net core/standard 支持到2.0或者2.0以上
 
 ### 2 支持桌面/移动（Xamarin）开发
 ### 3.支持关系数据库有 SQL Server/LocalDB/Firebird/MySQL/Postgresql/SQLCE/Sqlite
@@ -15,6 +15,7 @@
 ## 开始使用
    ### 1.最简单的使用是使用nuget添加你想连接数据库的Data Provider的引用，比如搜索 Mysql 然后安装，安装完成后初始化
 ```c#
+        //初始化
         OrmDB = new OrmDBPlatform();
 
          //监控错误，将日志同时写入Console/db/文本文件中 
@@ -26,11 +27,12 @@
         //shikii 为数据库名 root 为用户名 123为密码
         //默认使用本地的数据库（不适用SQL Server /LocalDB）
         //EntitySourceAssemblies 表示实体类所在的Assembly,默认使用当前程序集
-        bool isConnected = OrmDB.Connect("shikii",  "root","123");
+        bool isConnected = OrmDB.Connect("shikii",  "root","123"); //localhost模式下使用默认的端口
         
-        //远程访问则请使用（不适用SQL Server /LocalDB）
-         bool isConnected = OrmDB.Connect(  typeof(MySQLDBEngine),  ip,  port,"shikii",  "123",  "root") ;
-
+        //远程访问则请使用（注意不能用这种方式连接SQL Server /LocalDB，往下有介绍）
+         bool isConnected = OrmDB.Connect( ip, "shikii",  "123",  "root") ;        //使用默认端口号 如mysql 3306 
+         bool isConnected = OrmDB.Connect( ip,  port,"shikii",  "123",  "root") ;//使用自定义端口号
+       
          //如果使用sqlite/sqlce 
           bool isConnected = OrmDB.Connect( dbPath) ;
 
@@ -45,14 +47,18 @@
    ### 2.新建立Entities（可自己命名） 文件夹，在Entities下新建 SampleEntity 类，这将在OrmDBPlatform.Connect 后创建名为Sample的表，请注意必须继承自EntityBase
    ```c#
       //可以使用  [Entity("MANUAL_CREATE_TABLE")] 来手动创建此表 
-      //默认自动创建
+      //默认自动创建，此外使用Entity特性可以在创建表后执行特定任务
+      //比如：[Entity(EntityAttribute.ActionType.Alter, "add unique (MessageContent,MessageRecordTime)")]
+      //这将在创建完表后执行sql 语句（添加唯一键）
       //不支持命名自定义表名
       public class SampleEntity : EntityBase
       {
           [DBKey] //设置主键，也可以设置外键
           public String Name{get;set;}  
           //指定字符串长度（不需要显示使用，默认使用[MySqlTextTypeAttribute("varchar(255)")]）
-          [MySqlTextTypeAttribute("MEDIUMTEXT")] 
+         //可以将多个特性用于一个字段，这样有利于适配更多数据库 
+          [MySqlTextType("MEDIUMTEXT")] 
+          [SQLiteTextType("Text")]
           public String XDesc{get;set;}
         
 
@@ -60,7 +66,7 @@
    ```
 ### 3.增
  ```c#
-       
+          //一般，数据量少时使用
               SampleEntity se = new SampleEntity() ;
               se.Name="Google" ;
               se.XDesc="Fuck Google" ;

@@ -57,7 +57,7 @@ namespace dotNetLab.Data
                     return null;
             }
             catch (Exception e)
-            { 
+            {  
                 this.ErrorHandler?.Invoke(null, e);
                
                 return e;

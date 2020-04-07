@@ -597,7 +597,12 @@ namespace dotNetLab.Data.Orm
 
                             
                         }
+                        else if(att.KeyDescription.Equals(DBKeyAttribute.UNIQUE))
+                        {
+                                AttributeSet.Add(item.Name, att.KeyDescription);
 
+                            
+                        }
 
                     }
                      
@@ -1046,6 +1051,69 @@ namespace dotNetLab.Data.Orm
             //先关闭Reader
             reader.Close();
             return EntitySet ;
+        }
+
+        public virtual List<T> Where<T>(Expression<Func<T, Entry>> selectSQLExpression,
+            Expression<Func<T, Entry>> FromSQLExpression = null
+            , Expression<Func<T, bool>> WhererExpression=null
+            , String TableName = null
+            ) where T : EntityBase
+        {
+
+            String tableName = TableName;
+            if (tableName == null)
+                tableName = GetTableName(typeof(T), null);
+
+
+            StringBuilder sqlStringBuilder = new StringBuilder();
+            Expression2SQL expression2SQL = new Expression2SQL();
+
+            String selectSQL = expression2SQL.GetRawSql(selectSQLExpression);
+            String fromSQL = expression2SQL.GetRawSql(FromSQLExpression);
+            String whereSQL = expression2SQL.GetRawSql(WhererExpression);
+            if (!selectSQL.IsValideString())
+                selectSQL = " select * ";
+            if (!fromSQL.IsValideString())
+                fromSQL = " from " + tableName;
+            else if(!fromSQL.ToLower().Contains("from"))
+            {
+                fromSQL = string.Format(" from {0} ",tableName) +fromSQL;
+            }
+
+            sqlStringBuilder.Append(selectSQL);
+            sqlStringBuilder.Append(" " + fromSQL);
+            if (whereSQL.IsValideString())
+                sqlStringBuilder.Append(" where " + whereSQL);
+
+             
+
+
+            List<T> EntitySet = new List<T>();
+            ITableInfo keyValueDB = AdonetContext as ITableInfo;
+            List<String> lstColNames = keyValueDB.GetTableColumnNames(tableName).ToList();
+
+            DbDataReader reader = AdonetContext.FastQueryData(sqlStringBuilder.ToString());
+            if (reader == null)
+                return EntitySet;
+            int nFileCount = reader.FieldCount;
+
+            if (reader.HasRows)//如果有数据
+            {
+                while (reader.Read())
+                {
+                    EntityBase entity = (EntityBase)System.Activator.CreateInstance(typeof(T));
+                    for (int i = 0; i < nFileCount; i++) //逐个字段的遍历
+                    {
+                        Object obj = reader.GetValue(i);
+                        entity.OrmHost = this;
+                        entity.AssignValue(lstColNames[i], obj);
+                    }
+                    EntitySet.Add((T)entity);
+                }
+            }
+            //先关闭Reader
+            reader.Close();
+            return EntitySet;
         }
 
         /// <summary>
@@ -1523,33 +1591,7 @@ namespace dotNetLab.Data.Orm
                 temp = IsConnected;
             }
 
-            else
-            {
-
-                Type type_DBEngine = GetEngineType();
-
-                if (type_DBEngine == typeof(SQLiteDBEngine))
-                {
-
-                    if (!DBName.EndsWith(".db"))
-                        DBName = DBName + ".db";
-                    temp = ThisDBManager.Connect(DBName);
-
-                }
-                else if (type_DBEngine.Name == "SQLCEDBEngine")
-                {
-                    if (!DBName.EndsWith(".sdf"))
-                        DBName = DBName + ".sdf";
-                    temp = ThisDBManager.Connect(DBName, true);
-
-                }
-                else
-                {
-                    temp = ThisDBManager.Connect(type_DBEngine, DBName, usrName, pwd);
-
-                }
-
-            }
+            
 
             return temp;
         }
@@ -1561,7 +1603,6 @@ namespace dotNetLab.Data.Orm
         /// firebird(默认使用嵌入模式，服务器模式需要先设置 FireBirdEngine EmbeddedMode = false;),mysql
         /// 注意不支持sql server,localdb
         /// </summary>
-        /// <param name="type_DBEngine">比如：typeof(SQLiteDBEngine)</param>
         /// <param name="EntitySourceAssemblies">存在Entity的程序集(可以为空)</param>
         public bool Connect(String DBName = "shikii", String usrName = "root", String pwd = "123",
             params Assembly[] EntitySourceAssemblies)
@@ -1624,33 +1665,7 @@ namespace dotNetLab.Data.Orm
                 temp = IsConnected;
             }
 
-            else
-            {
-
-                Type type_DBEngine = GetEngineType();
-
-                if (type_DBEngine == typeof(SQLiteDBEngine))
-                {
-
-                    if (!DBName.EndsWith(".db"))
-                        DBName = DBName + ".db";
-                    temp = ThisDBManager.Connect(DBName);
-                    
-                }
-                else if (type_DBEngine.Name == "SQLCEDBEngine")
-                {
-                    if (!DBName.EndsWith(".sdf"))
-                        DBName = DBName + ".sdf";
-                    temp = ThisDBManager.Connect(DBName, true);
-                    
-                }
-                else
-                {
-                    temp = ThisDBManager.Connect(type_DBEngine, DBName, usrName, pwd);
-                    
-                }
-              
-            }
+            
           
             return temp;
         }
@@ -1662,7 +1677,6 @@ namespace dotNetLab.Data.Orm
         /// 假设你使用使用默认端口
         /// firebird(默认使用嵌入模式，服务器模式需要先设置 FireBirdEngine EmbeddedMode = false;),mysql
         /// </summary>
-        /// <param name="type_DBEngine">比如：typeof(SQLiteDBEngine)</param>
         /// <param name="EntitySourceAssemblies">存在Entity的程序集</param>
         public bool Connect(String ip, String DBName = "shikii", String usrName = "root", String pwd = "123", params Assembly[] EntitySourceAssemblies)
         {
@@ -1755,6 +1769,80 @@ namespace dotNetLab.Data.Orm
                 }
 
             }
+
+            return temp;
+
+        }
+
+
+        /// <summary>
+        /// ！！！注意不支持sql server,localdb！！！
+        /// 初始化数据平台(不必手动调用AddTable,会自动查找继承自EntityBase的Entity,然后再创建相应的表)
+        /// 假设你使用使用默认端口
+        /// firebird(默认使用嵌入模式，服务器模式需要先设置 FireBirdEngine EmbeddedMode = false;),mysql
+        /// </summary>
+        /// <param name="EntitySourceAssemblies">存在Entity的程序集</param>
+        public bool Connect(String ip,int port, String DBName = "shikii", String usrName = "root", String pwd = "123", params Assembly[] EntitySourceAssemblies)
+        {
+            Func<Type> GetEngineType = () =>
+            {
+                if (this.type_EngineType != null)
+                    return this.type_EngineType;
+
+                String path = Assembly.GetCallingAssembly().Location;
+                path = Path.GetDirectoryName(path);
+                String[] dllFiles = Directory.GetFiles(path, "*.dll");
+
+                Type type_DBEngine = null;
+
+                for (int i = 0; i < dllFiles.Length; i++)
+                {
+
+                    String dllProductName = GetADONETDllProductName(dllFiles[i]);
+                    if (dllProductName.Contains("Npgsql"))
+                    {
+                        type_DBEngine = typeof(PostgreSQLEngine);
+                        break;
+
+                    }
+                    else if (dllProductName.Contains("SQLite"))
+                    {
+                        type_DBEngine = typeof(SQLiteDBEngine);
+                        break;
+                    }
+                    else if (dllProductName.Contains("MySql"))
+                    {
+                        type_DBEngine = typeof(MySQLDBEngine);
+                        break;
+                    }
+                    else if (dllProductName.Contains("FirebirdClient"))
+                    {
+                        type_DBEngine = typeof(FireBirdEngine);
+                        break;
+                    }
+                    else if (dllProductName.Contains("Microsoft") && dllProductName.Contains("Compact"))
+                    {
+                        type_DBEngine = typeof(SQLCEDBEngine);
+                        break;
+                    }
+
+                }
+
+                return type_DBEngine;
+            };
+
+            bool temp = false;
+            if (ThisDBManager == null)
+            {
+                AssignMeToEntry();
+                Type type = GetEngineType();
+                
+                Init(type, ip, port, DBName, usrName, pwd, EntitySourceAssemblies);
+                EndInit();
+                temp = IsConnected;
+            }
+
+             
 
             return temp;
 
