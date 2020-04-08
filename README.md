@@ -120,8 +120,10 @@
 
 ### 4.删
  ```c#
- //具体请参考方法上的注释
+            //根据条件删除
             OrmDB.Delete<SampleEntity>(x=>x.Name=="Google") ;
+           //根据主键值删除
+           OrmDB.Delete<SampleEntity>(1) ;
  ```
 
 ### 5.改
@@ -135,10 +137,16 @@
 
 ### 6.查
  ```c#
-      //具体请参考方法上的注释
-      //不明白可以给我留言
       //返回实体集
      List<SampleEntity> lst  = OrmDB.Where<SampleEntity>(x=>x.Name=="Google") ;
+      // 第一个参数null 表示“select  * ”
+      // 第二个表示“ from Sample order by ShareItemRecordTime desc ” 其中from Sample 可以不写
+     //第三个参数表示无条件筛选
+      lst  = OrmDB.Where<SampleEntity>(null,  x.OrderByDESC(x.ShareItemRecordTime) , null);;
+   
+      //返回单个实体
+       SampleEntity entity = OrmDB.WhereUniqueEntity(x=>x.Name=="Google");
+    
       //返回为DataTable
         /// <summary>
         /// 兼容以前的查询方式，灵活度最高
@@ -147,7 +155,14 @@
         /// <param name="selectSQLExpression">对应于select 语句</param>
         /// <param name="FromSQLExpression">对应于from sql语句</param>
         /// <param name="WhererExpression">对应于where sql语句</param>
-      public virtual DataTable InternalQuery<T>(Expression<Func<T, Entry>> selectSQLExpression  ,Expression<Func<T, Entry>> FromSQLExpression  = null,Expression<Func<T, bool>> WhererExpression=null)
+      public virtual DataTable InternalQuery<T>(Expression<Func<T, Entry>> selectSQLExpression  ,Expression<Func<T, Entry>>       FromSQLExpression  = null,Expression<Func<T, bool>> WhererExpression=null)
+
+    //示例
+    //统计表中记录总条数
+   //需要注意的是 x.Select(x.Count("*")) 不能写成 x.Select().Count("*")
+     DataTable dt  =  InternalQuery<SampleEntity>(x=>x.Select(x.Count("*")),null,null) ;
+       
+
  ```
 
 ### 7.如何使用“简化”ADO.NET Helper
