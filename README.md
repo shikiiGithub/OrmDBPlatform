@@ -140,9 +140,9 @@
       //返回实体集
      List<SampleEntity> lst  = OrmDB.Where<SampleEntity>(x=>x.Name=="Google") ;
       // 第一个参数null 表示“select  * ”
-      // 第二个表示“ from Sample order by ShareItemRecordTime desc ” 其中from Sample 可以不写
+      // 第二个参数表示“ from Sample order by ShareItemRecordTime desc ” 其中from Sample 可以省略
      //第三个参数表示无条件筛选
-      lst  = OrmDB.Where<SampleEntity>(null,  x.OrderByDESC(x.ShareItemRecordTime) , null);;
+      lst  = OrmDB.Where<SampleEntity>(null, x=> x.OrderByDESC(x.ShareItemRecordTime) , null);;
    
       //返回单个实体
        SampleEntity entity = OrmDB.WhereUniqueEntity(x=>x.Name=="Google");
