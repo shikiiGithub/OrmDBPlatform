@@ -183,10 +183,11 @@ namespace dotNetLab.Common
         {
             return !s.Contains(x);
         }
+
+
         /// <summary>
-        /// 形成sql 无意义
+        /// 是否不为null 或empty
         /// </summary>
-     
         public static bool IsValideString(this String str, bool CheckWhiteSpace = false )
         {
             return !String.IsNullOrEmpty(str) && !String.IsNullOrWhiteSpace(str);

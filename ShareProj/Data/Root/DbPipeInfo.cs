@@ -143,6 +143,7 @@ namespace dotNetLab.Data
 
                 }
             }
+         //   if(Threads.Count==0 && )
 
         }
         public DbCommand AvailableCommand  

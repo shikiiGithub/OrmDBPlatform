@@ -437,6 +437,7 @@ namespace dotNetLab.Data.Orm
          /// </summary>
          /// <param name="EntityType">实体类Type</param>
          /// <param name="_TableName">表名</param>
+        [Obsolete("已经废弃")]
         public void RegisterTable(Type EntityType, String _TableName)
         {
             String tableName = _TableName;
@@ -843,11 +844,6 @@ namespace dotNetLab.Data.Orm
         {
             try
             {
-
-                
-
-              
-
                 entity.OrmHost = this;
                 String tableName = null;
                 Type EntityType = null;
@@ -862,14 +858,7 @@ namespace dotNetLab.Data.Orm
                 StringBuilder _sbPropertyNames = new StringBuilder();
                 foreach (var item in pifs)
                     {
-                        // OrmAttribute attr = item.GetCustomAttribute<DBKeyAttribute>();
-
-                        //if (attr != null && !(item.PropertyType == typeof(String) || item.PropertyType == typeof(DateTime)))
-                        //{
-
-                        //    else
-                        //    continue;
-                        //}
+                        
                         if (item.Name.Equals("Id"))
                         {
                             //自动设置自增值 
@@ -999,16 +988,12 @@ namespace dotNetLab.Data.Orm
         /// 删除一条记录
         /// </summary>
         /// <typeparam name="T">Entity 类型</typeparam>
-        /// <param name="HowToDelete">比如“delete from test where name='sfs'”则HowToDelete=(x)=> x.name='sfs'</param>
+        /// <param name="WhererExpression">比如“delete from test where name='sfs'”则 WhererExpression = (x)=> x.name='sfs'</param>
         /// <param name="TableName"></param>
-        /// <param name="args"></param>
-        public void Delete<T> (Expression<Func<T, bool>> HowToDelete, String TableName = null ) where T : EntityBase
+        public void Delete<T> (Expression<Func<T, bool>> WhererExpression, String TableName = null ) where T : EntityBase
         {
             Expression2SQL expression2SQL = new Expression2SQL();
-
-
-           String sql = expression2SQL.GetRawSql<T>(HowToDelete);
-        
+            String sql = expression2SQL.GetRawSql<T>(WhererExpression);
             String tableName = TableName;
             if (tableName == null)
                 tableName = GetTableName(typeof(T), null);
@@ -1051,6 +1036,15 @@ namespace dotNetLab.Data.Orm
             //先关闭Reader
             reader.Close();
             return EntitySet ;
+        }
+
+        public virtual List<T> Where<T>( 
+        Expression<Func<T, Entry>> FromSQLExpression = null
+        , Expression<Func<T, bool>> WhererExpression = null
+        , String TableName = null
+        ) where T : EntityBase
+        {
+            return Where<T>(null, FromSQLExpression, WhererExpression);
         }
 
         public virtual List<T> Where<T>(Expression<Func<T, Entry>> selectSQLExpression,
@@ -1153,6 +1147,21 @@ namespace dotNetLab.Data.Orm
             reader.Close();
             return EntitySet;
         }
+
+        /// <summary>
+        /// <para>取出一行数据</para>
+        /// <typeparam name="T">Entity 数据类型</typeparam>
+        /// <param name="WhererExpression"><para></para>筛选条件,可以为空(为空时表示"",不出现where 关键字）/param>
+        /// <param name="tableName"><para></para>指定其它的表名</param>
+        /// </summary>
+        public virtual T WhereUniqueEntity<T>(
+              Expression<Func<T, bool>> WhererExpression = null,
+              String tableName = null) where T : EntityBase
+        {
+
+            return WhereUniqueEntity<T>(null, null, WhererExpression, tableName);
+        }
+
 
         /// <summary>
         /// <para>取出一行数据</para>
@@ -1309,11 +1318,9 @@ namespace dotNetLab.Data.Orm
         /// 兼容以前的查询方式，灵活度最高
         /// </summary>
         /// <typeparam name="T">主要用于智能提示</typeparam>
-        /// <param name="selectSQLExpression">select </param>
-        /// <param name="FromSQLExpression"></param>
-        /// <param name="WhererExpression"></param>
-        /// <param name="args"></param>
-        /// <returns></returns>
+        /// <param name="selectSQLExpression">null 表示“select *” </param>
+        /// <param name="FromSQLExpression">null 表示 “from 表名” 表名会自动获得不必手动指定</param>
+        /// <param name="WhererExpression">null 表示没有条件</param>
         public virtual DataTable InternalQuery<T>(Expression<Func<T, Entry>> selectSQLExpression  ,
             Expression<Func<T, Entry>> FromSQLExpression  = null,
             Expression<Func<T, bool>> WhererExpression=null
@@ -1322,7 +1329,6 @@ namespace dotNetLab.Data.Orm
         {
             StringBuilder sqlStringBuilder = new StringBuilder();
             Expression2SQL expression2SQL = new Expression2SQL();
-            
             String selectSQL = expression2SQL.GetRawSql(selectSQLExpression);
             String fromSQL = expression2SQL.GetRawSql(FromSQLExpression);
             String whereSQL = expression2SQL.GetRawSql(WhererExpression);
@@ -1330,12 +1336,12 @@ namespace dotNetLab.Data.Orm
                 selectSQL = " select * ";
             if (!fromSQL.IsValideString())
                 fromSQL = " from " + GetTableName(typeof(T), null);
-            
              sqlStringBuilder.Append(selectSQL);
-            sqlStringBuilder.Append(" "+fromSQL);
+              if(!fromSQL.Contains(" from "))
+                 fromSQL = String.Format(" from {0} {1} ",GetTableName(typeof(T), null),fromSQL);
+             sqlStringBuilder.Append(" "+fromSQL);
             if (whereSQL.IsValideString())
                 sqlStringBuilder.Append(" where " + whereSQL);
-
             DataTable dt = AdonetContext.ProvideTable(sqlStringBuilder.ToString() );
             sqlStringBuilder.Clear();
             return dt;
@@ -1347,7 +1353,6 @@ namespace dotNetLab.Data.Orm
         /// <typeparam name="T"></typeparam>
         /// <param name="UpdateSQLExpression">写成例如：Entity.Update(tableName)</param>
         /// <param name="WhererExpression">写成例如：（x）=>x.id=8</param>
-        /// <param name="args"></param>
         public virtual void InternalExecuteNonQuery<T>(Expression<Func<T, Entry>> UpdateSQLExpression,
               Expression<Func<T, bool>> WhererExpression = null
                
@@ -1742,34 +1747,6 @@ namespace dotNetLab.Data.Orm
                 temp = IsConnected;
             }
 
-            else
-            {
-
-                Type type_DBEngine = GetEngineType();
-
-                if (type_DBEngine == typeof(SQLiteDBEngine))
-                {
-
-                    if (!DBName.EndsWith(".db"))
-                        DBName = DBName + ".db";
-                    temp = ThisDBManager.Connect(DBName);
-
-                }
-                else if (type_DBEngine.Name == "SQLCEDBEngine")
-                {
-                    if (!DBName.EndsWith(".sdf"))
-                        DBName = DBName + ".sdf";
-                    temp = ThisDBManager.Connect(DBName, true);
-
-                }
-                else
-                {
-                    temp = ThisDBManager.Connect(type_DBEngine, DBName, usrName, pwd);
-
-                }
-
-            }
-
             return temp;
 
         }
@@ -1866,32 +1843,7 @@ namespace dotNetLab.Data.Orm
                 EndInit();
                 temp = IsConnected;
             }
-            else
-            {
-               
-                if (type_DBEngine == typeof(SQLiteDBEngine))
-                {
-
-                    if (!DBName.EndsWith(".db"))
-                        DBName = DBName + ".db";
-                    temp = ThisDBManager.Connect(DBName);
-                   
-                }
-                else if (type_DBEngine.Name == "SQLCEDBEngine")
-                {
-                    if (!DBName.EndsWith(".sdf"))
-                        DBName = DBName + ".sdf";
-                    temp = ThisDBManager.Connect(DBName, true);
-                   
-                }
-                else
-                {
-                    temp = ThisDBManager.Connect(type_DBEngine, DBName, usrName, pwd);
-                    
-                }
-            }
-
-         
+          
             return temp;
         }
         /// <summary>
@@ -1914,31 +1866,7 @@ namespace dotNetLab.Data.Orm
                 EndInit();
                 temp = IsConnected;
             }
-            else
-            {
-                if (type_DBEngine == typeof(SQLiteDBEngine))
-                {
-
-                    if (!DBName.EndsWith(".db"))
-                        DBName = DBName + ".db";
-                    temp = ThisDBManager.Connect(DBName);
-                    
-                }
-                else if (type_DBEngine.Name == "SQLCEDBEngine")
-                {
-                    if (!DBName.EndsWith(".sdf"))
-                        DBName = DBName + ".sdf";
-                    temp = ThisDBManager.Connect(DBName, true);
-                  
-                }
-                else
-                {
-                    temp = ThisDBManager.Connect(type_DBEngine, ip, port, DBName, usrName, pwd);
-                    
-                }
-            }
-             
-
+          
             return temp;
 
         }
@@ -1956,38 +1884,9 @@ namespace dotNetLab.Data.Orm
                 SqlServerDBEngine.asm_SQLSEVER = asm_SQLSEVER;
                 Init(typeof(SqlServerDBEngine), DBName, usrName, pwd, EntitySourceAssemblies);
                 EndInit();
+            }
                 return IsConnected;
-            }
-            else
-            {
-                bool temp = false;
-                SqlServerDBEngine.asm_SQLSEVER = asm_SQLSEVER;
-            
-                Type type_DBEngine = typeof(SqlServerDBEngine);
-                //SQLITE
-                if (type_DBEngine == typeof(SQLiteDBEngine))
-                {
-
-                    if (!DBName.EndsWith(".db"))
-                        DBName = DBName + ".db";
-                    temp = ThisDBManager.Connect(DBName);
-                
-                }
-                else if (type_DBEngine.Name == "SQLCEDBEngine")
-                {
-                    if (!DBName.EndsWith(".sdf"))
-                        DBName = DBName + ".sdf";
-                    temp = ThisDBManager.Connect(DBName, true);
-                  
-                }
-                else
-                {
-                    temp = ThisDBManager.Connect(type_DBEngine, DBName, usrName, pwd);
              
-                }
-
-                return temp;
-            }
         }
         /// <summary>
         /// ！！！注意只支持sql server,localdb！！！
@@ -2002,38 +1901,9 @@ namespace dotNetLab.Data.Orm
                 SqlServerDBEngine.asm_SQLSEVER = asm_SQLSEVER;
                 Init(typeof(SqlServerDBEngine), ip, port, DBName, usrName, pwd, EntitySourceAssemblies);
                 EndInit();
-                return IsConnected;
             }
-            else
-            {
-                SqlServerDBEngine.asm_SQLSEVER = asm_SQLSEVER;
-                bool temp = false;
-                Type type_DBEngine = typeof(SqlServerDBEngine);
-                //SQLITE
-                if (type_DBEngine == typeof(SQLiteDBEngine))
-                {
-
-                    if (!DBName.EndsWith(".db"))
-                        DBName = DBName + ".db";
-                    temp = ThisDBManager.Connect(DBName);
-                    
-                }
-                else if (type_DBEngine.Name == "SQLCEDBEngine")
-                {
-                    if (!DBName.EndsWith(".sdf"))
-                        DBName = DBName + ".sdf";
-                    temp = ThisDBManager.Connect(DBName, true);
-                
-                }
-                else
-                {
-
-                    temp = ThisDBManager.Connect(type_DBEngine, ip, port, DBName, usrName, pwd);
              
-                }
-
-                return temp;
-            }
+                return IsConnected;
         }
         /// <summary>
 /// 内部使用
@@ -2066,7 +1936,6 @@ namespace dotNetLab.Data.Orm
             this.ThisDBManager = null;
             this.LogInfo ("数据库上下文被销毁");
         }
-
         /// <summary>
         /// 关闭数据库
         /// </summary>
