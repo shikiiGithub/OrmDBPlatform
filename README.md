@@ -49,6 +49,10 @@
         DbCommand dbcom = GetNewDbCommand();
       //或者你可以使用：
       CacheConnectionPool(你定义备用连接数);
+      //自定义智能连接池回收周期 
+      //默认为1000ms
+      OrmDB.AdonetContext.ThisDbPipeInfo.CycleCmdGapTimeInMillSecs = 500;
+       
      
         
    
