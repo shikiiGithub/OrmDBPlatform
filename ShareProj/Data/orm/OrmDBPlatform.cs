@@ -129,6 +129,12 @@ namespace dotNetLab.Data.Orm
             return (T)entry;
         }
 
+
+        public void CancelFixingOrmPlatform()
+        {
+            Entry_InternalOrmDBPlatform_FieldInfo.SetValue(null, this);
+        }
+
         /// <summary>
         /// 省得第将都要对Entity 实例赋值 OrmHost = this ;
         ///  Entity.Save(...)就不用考虑那么多东西
