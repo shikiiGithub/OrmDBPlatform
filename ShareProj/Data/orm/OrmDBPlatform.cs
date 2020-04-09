@@ -118,8 +118,8 @@ namespace dotNetLab.Data.Orm
         /// 必须使用用下列方法来获得Entity
         /// </summary>
         /// <typeparam name="T">Entity</typeparam>
-        /// <returns></returns>
-        [Obsolete("请不要使用")]
+        /// <param name="args">初始化实体的构造方法的参数</param>
+        /// <returns>初始化的实体</returns>
         public virtual T GetEntity<T>(params object [] args) where T : Entry
         {
             Entry entry = null;
@@ -144,6 +144,9 @@ namespace dotNetLab.Data.Orm
             TableManager = new Dictionary<string, EntityInfo>();
            
         }
+
+        
+
         /// <summary>
         /// 注册日志输出,如果没有指定日志事件（Error/Info）
         /// 则使用默认的日志处理（这将导致一定耗时）

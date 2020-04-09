@@ -13,7 +13,7 @@ namespace dotNetLab.Data
         public Dictionary<int, DbCommand> ThreadId_DbCommandPairs = new Dictionary<int, DbCommand>();
         public List<int> ThreadIDs = new List<int>();
         public List<Thread> Threads = new List<Thread>();
-        public static Queue <DbCommand> ReservedDbCommands = new Queue<DbCommand>();
+        public  Queue <DbCommand> ReservedDbCommands = new Queue<DbCommand>();
         Type ConnectionType;
         String connectionString;
         public DbConnection MainDbConnection;

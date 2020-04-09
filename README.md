@@ -47,6 +47,8 @@
         //显式指定的好处是可以更快的响应并发。（可以使用并行来察看并发处理的效果）
         for(int i = 0;i< 你定义备用连接数;i++);
         DbCommand dbcom = GetNewDbCommand();
+      //或者你可以使用：
+      CacheConnectionPool(你定义备用连接数);
      
         
    
@@ -212,6 +214,27 @@ OrmDB.FetchDynamicObject(dyn_Obj ) ;
   cmd.ExecuteNonQuery() ;
   
  
+```
+### 10.我要使用多种数据库时该怎么办？
+OrmDBPlatform 对象默认只管理一种数据库，对于这种情况，要创建新OrmDBPlatform对象，然后必须在新创建实体时使用GetEntity<T>
+```
+//连接第一种数据库
+ OrmDB = new OrmDBPlatform();
+bool b= Connect(typeof(MySQLDBEngine), "shikii", "root",  "123", null);
+ SampleEntity entity = new SampleEntity ();
+//后续的操作跟以上所述类似
+//...
+
+
+
+//连接第二种数据库比如sqlite
+var OrmDBForSqlite = new OrmDBPlatform();
+  b= Connect(typeof(SQLiteDBEngine), "D:/shikii.db", null,  null, null);
+//一定要使用     GetEntity 这个方法，不能用 new SampleEntity() ;
+ SampleEntity entity = OrmDBForSqlite.GetEntity<SampleEntity>();
+//后续的操作跟以上所述类似
+//...
+
 ```
 
 
