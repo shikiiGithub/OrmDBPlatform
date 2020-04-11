@@ -152,7 +152,17 @@
    
       //返回单个实体
        SampleEntity entity = OrmDB.WhereUniqueEntity(x=>x.Name=="Google");
-    
+
+       
+     //只查询部分的字段
+     //定义一个继承自  SimplifiedEntity 的实体，确保这个实体的字段的字段名与SampleEntity 一样
+     public class SampleMinEntity:SimplifiedEntity{
+        //不需要加特性
+         public String XDesc{get;set;}
+     }
+    List<SampleMinEntity> lst = Where<SampleMinEntity,SampleEntity> (x=>x.Name=="Google" ) ;
+     
+
       //返回为DataTable
         /// <summary>
         /// 兼容以前的查询方式，灵活度最高
@@ -244,6 +254,19 @@ bool b= Connect(typeof(MySQLDBEngine), "shikii", "root",  "123", null);
 //...
 
 ```
+
+### 11.我要如何监视数据的变动？
+```C#
+  //默认是异步调用DataChanged这个方法，不会堵塞其它进程
+   OrmDB.OnDBDataChanged += DataChanged ;
+   public void DataChanged(EntityBase entity,SaveMode mode)
+   {
+          SampleEntity  thisEntity = entity as SampleEntity;
+      //你的代码 ...
+
+   }
+```
+
 
 
 
