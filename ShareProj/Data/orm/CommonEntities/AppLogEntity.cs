@@ -95,7 +95,7 @@ namespace dotNetLab.Data.Orm
         /// <param name="mode">INSERT,UPDATE,MIXED</param>
         /// <param name="tableName">另外指定表名</param>
         /// <param name="args"></param>
-        public override void Save(SaveMode mode = SaveMode.MIXED, String tableName = null )
+        public override void Save(EntitySaveMode mode = EntitySaveMode.MIXED, String tableName = null )
         {
             lock (OrmHost)
             {
@@ -134,13 +134,13 @@ namespace dotNetLab.Data.Orm
 
                     switch (mode)
                     {
-                        case SaveMode.INSERT:
+                        case EntitySaveMode.INSERT:
                             OrmHost?.ISave(this );
                             break;
-                        case SaveMode.UPDATE:
+                        case EntitySaveMode.UPDATE:
                             OrmHost?.USave(this );
                             break;
-                        case SaveMode.MIXED:
+                        case EntitySaveMode.MIXED:
                             OrmHost?.Save(this );
                             break;
 

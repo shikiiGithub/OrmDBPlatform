@@ -8,14 +8,15 @@ using System.Threading.Tasks;
 using dotNetLab.Common;
 namespace dotNetLab.Data.Orm
 {
-   public abstract class Entry
+    public enum EntitySaveMode { INSERT, UPDATE, MIXED }
+    public abstract class Entry
     {
         public OrmDBPlatform OrmHost;
         public PropertyInfo[] pifs;
         public List<String> PropertyNameSet;
         public String PrimaryKeyPropertyName;
         public bool PrimaryKeyPropertyQuote = false;
-        public enum SaveMode { INSERT, UPDATE, MIXED }
+       
        
         static OrmDBPlatform InternalOrmDBPlatform = null;
        
@@ -96,7 +97,7 @@ namespace dotNetLab.Data.Orm
         }
 
 
-        public abstract void Save(SaveMode mode = SaveMode.MIXED, String tableName = null);
+        public abstract void Save(EntitySaveMode mode = EntitySaveMode.MIXED, String tableName = null);
 
 
         public string MapJson<T>( string [] arr , params Expression<Func<T,string>> [] Properties ) where T: Entry

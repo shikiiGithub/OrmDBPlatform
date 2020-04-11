@@ -47,7 +47,7 @@ namespace dotNetLab.Data.Orm
         /// <param name="mode">INSERT,UPDATE,MIXED</param>
         /// <param name="tableName">另外指定表名</param>
         /// <param name="args"></param>
-        public override void Save(SaveMode mode= SaveMode.MIXED,String tableName=null  )
+        public override void Save(EntitySaveMode mode= EntitySaveMode.MIXED,String tableName=null  )
         {
             if (tableName != null && tableName.EndsWith("Entity") && tableName != "Entity")
             {
@@ -63,13 +63,13 @@ namespace dotNetLab.Data.Orm
             this.TableName = tableName;
             switch (mode)
             {
-                case SaveMode.INSERT:
+                case EntitySaveMode.INSERT:
                     ex= OrmHost?.ISave(this );
                     break;
-                case SaveMode.UPDATE:
+                case EntitySaveMode.UPDATE:
                    ex= OrmHost?.USave(this );
                     break;
-                case SaveMode.MIXED:
+                case EntitySaveMode.MIXED:
                    ex= OrmHost?.Save(this );
                     break;
                

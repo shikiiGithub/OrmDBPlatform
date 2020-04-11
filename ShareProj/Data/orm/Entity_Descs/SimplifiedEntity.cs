@@ -91,7 +91,7 @@ namespace dotNetLab.Data.Orm
         /// <param name="mode"></param>
         /// <param name="TableName"></param>
         /// <param name="args"></param>
-        public override void Save( SaveMode mode = SaveMode.UPDATE,String TableName =null )
+        public override void Save( EntitySaveMode mode = EntitySaveMode.UPDATE,String TableName =null )
         {
             try
             {

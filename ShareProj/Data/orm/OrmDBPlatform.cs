@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using System.Xml.Linq;
 using dotNetLab.Common;
  
 namespace dotNetLab.Data.Orm
@@ -17,7 +18,8 @@ namespace dotNetLab.Data.Orm
   public  class OrmDBPlatform:IDisposable
   {
 
-        
+        public delegate void OnDBDataChangedCallback(EntityBase enity,EntitySaveMode mode);
+        public event OnDBDataChangedCallback OnDBDataChanged;
         public Type type_EngineType = null;
         
         //数据库对象管理中心
@@ -85,7 +87,7 @@ namespace dotNetLab.Data.Orm
                     entity.Message = ex.Message + " " + ex.StackTrace;
                 
                    
-                        entity.Save(Entry.SaveMode.INSERT);
+                        entity.Save(EntitySaveMode.INSERT);
 
                 }
 
@@ -107,7 +109,7 @@ namespace dotNetLab.Data.Orm
                     entity.LogFiredTime = DateTime.Now;
                     entity.Status = AppLogEntity.LogLevels.INFO.ToString();
                     entity.Message = msg;
-                    entity.Save(Entry.SaveMode.INSERT);
+                    entity.Save(EntitySaveMode.INSERT);
                 }
             }
              
@@ -775,69 +777,27 @@ namespace dotNetLab.Data.Orm
                 sb = new StringBuilder();
 
                 StringBuilder _sbPropertyNames = new StringBuilder();
+                Exception exception = null;
+
                 if (cnt == 0)
                 {
-                    
-                    foreach (var item in pifs)
+                    exception = ISave(entity);
+                    if (OnDBDataChanged != null && exception == null)
                     {
-                       // OrmAttribute attr = item.GetCustomAttribute<DBKeyAttribute>();
-
-                        //if (attr != null && !(item.PropertyType == typeof(String) || item.PropertyType == typeof(DateTime)))
-                        //{
-                            
-                        //    else
-                        //    continue;
-                        //}
-                        if(item.Name.Equals("Id"))
-                        {
-                            //自动设置自增值
-                            if (this.AdonetContext.GetType().Name.Equals("FireBirdEngine"))
-                            {
-                                FireBirdEngine fireBird = this.AdonetContext as FireBirdEngine;
-                                int id = fireBird.GetAuto_IncrementID(tableName, item.Name );
-                                item.SetValue(entity, id, null);
-                            }
-                            else
-                            continue;
-                        }
-
-                        Object obj = item.GetValue(entity,null);
-
-                        
-                         String value = GetEntityPropertyValue(item.PropertyType, obj);
-                        sb.Append(value + ",");
-                        _sbPropertyNames.AppendFormat("{0},", item.Name);
+                        OnDBDataChanged.BeginInvoke(entity, EntitySaveMode.INSERT, null, null);
                     }
-                    _sbPropertyNames.Remove(_sbPropertyNames.Length - 1, 1);
-                    String sql = sb.ToString().TrimEnd(',');
-
-                    sql = String.Format("insert into {0} ({1}) values({2}) ; ",
-                        tableName, _sbPropertyNames.ToString(), sql);
-                    return AdonetContext.ExecuteNonQuery(sql );
                 }
                 else
                 {
-                    sb.Clear();
-                    foreach (var item in pifs)
+                    exception = USave(entity);
+                    if (OnDBDataChanged != null && exception == null)
                     {
-                        if (item.Name.Equals("Id"))
-                        {
-                                continue;
-                        }
-                        DBKeyAttribute attr = item.GetCustomAttribute<DBKeyAttribute>();
-                        if (attr != null && attr.KeyDescription.Equals(DBKeyAttribute.PRIMARYKEY))
-                            continue;
-                        Object obj = item.GetValue(entity,null);
-                        String value = GetEntityPropertyValue(item.PropertyType, obj);
-                        sb.Append( 
-                            String.Format("{0}={1},",item.Name,value)
-                            );
+                        OnDBDataChanged.BeginInvoke(entity, EntitySaveMode.UPDATE, null, null);
                     }
-                    String sql = sb.ToString().TrimEnd(',');
-                 return    AdonetContext.Update(tableName, sql +
-                        String.Format(" where {0}={1}", entity.PrimaryKeyPropertyName, entity.GetPrimaryKeyValue()) 
-                        );
                 }
+
+                    return exception;
+
             }
             catch (Exception e )
             {
@@ -890,8 +850,13 @@ namespace dotNetLab.Data.Orm
                     String sql = sb.ToString().TrimEnd(',');
                     sql = String.Format("insert into {0} ({1}) values({2}) ; ",
                         tableName, _sbPropertyNames.ToString(), sql);
-                return AdonetContext.ExecuteNonQuery(sql );
-                
+                Exception exception= AdonetContext.ExecuteNonQuery(sql );
+                if (OnDBDataChanged != null && exception == null)
+                {
+                    OnDBDataChanged.BeginInvoke(entity, EntitySaveMode.INSERT, null, null);
+                }
+                return exception;
+
             }
             catch (Exception e)
             {
@@ -937,6 +902,11 @@ namespace dotNetLab.Data.Orm
                     String.Format(" where {0}={1}", entity.PrimaryKeyPropertyName, entity.GetPrimaryKeyValue()) 
                     );
                 sb.Clear();
+
+                if (OnDBDataChanged != null && exx_ == null)
+                {
+                    OnDBDataChanged.BeginInvoke(entity, EntitySaveMode.UPDATE, null, null);
+                }
                 return exx_;
             }
             catch (Exception e)

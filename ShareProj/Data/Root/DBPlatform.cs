@@ -15,8 +15,8 @@ namespace dotNetLab.Data
     {
         public event ErrorCallback ErrorHandler;
         public event InfoCallback InfoHandler;
-
-
+        public delegate void OnDBDataChangedCallback(String text);
+        public event OnDBDataChangedCallback OnDBDataChanged;
         public DbPipeInfo ThisDbPipeInfo;
         public void PerformErrorHandler(Object o, Exception e)
         {
@@ -53,12 +53,15 @@ namespace dotNetLab.Data
                     if (cmd == null)
                         cmd = ThisDbPipeInfo.AvailableCommand;
                     cmd.CommandText = sql;
+               
                     cmd.ExecuteNonQuery();
-                    return null;
+               
+               return null;
             }
             catch (Exception e)
             {  
                 this.ErrorHandler?.Invoke(null, e);
+                
                
                 return e;
             }
