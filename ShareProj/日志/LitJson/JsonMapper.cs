@@ -766,7 +766,7 @@ namespace LitJson
                 writer.WriteArrayStart();
 
                 foreach (object elem in (Array)obj)
-                    WriteValue(elem, writer, writer_is_private, depth + 1);
+                    WriteValue(elem, writer, writer_is_private, depth + 1,IgnoreField);
 
                 writer.WriteArrayEnd();
 
@@ -777,7 +777,7 @@ namespace LitJson
             {
                 writer.WriteArrayStart();
                 foreach (object elem in (IList)obj)
-                    WriteValue(elem, writer, writer_is_private, depth + 1);
+                    WriteValue(elem, writer, writer_is_private, depth + 1,IgnoreField);
                 writer.WriteArrayEnd();
 
                 return;
@@ -788,9 +788,11 @@ namespace LitJson
                 writer.WriteObjectStart();
                 foreach (DictionaryEntry entry in (IDictionary)obj)
                 {
-                    writer.WritePropertyName((string)entry.Key);
+                   
+                    //to do
+                    writer.WritePropertyName((String)entry.Key);
                     WriteValue(entry.Value, writer, writer_is_private,
-                                depth + 1);
+                                depth + 1,IgnoreField);
                 }
                 writer.WriteObjectEnd();
 
@@ -846,7 +848,7 @@ namespace LitJson
                         continue;
                     writer.WritePropertyName(p_data.Info.Name);
                     WriteValue(((FieldInfo)p_data.Info).GetValue(obj),
-                                writer, writer_is_private, depth + 1);
+                                writer, writer_is_private, depth + 1,IgnoreField);
                 }
                  
                 else
@@ -857,7 +859,7 @@ namespace LitJson
                     {
                         writer.WritePropertyName(p_data.Info.Name);
                         WriteValue(p_info.GetValue(obj, null),
-                                    writer, writer_is_private, depth + 1);
+                                    writer, writer_is_private, depth + 1,IgnoreField);
                     }
                 }
             }
@@ -873,7 +875,7 @@ namespace LitJson
                 {
                     writer.WritePropertyName(enumerable.Current);
                     WriteValue(dict[enumerable.Current],
-                               writer, writer_is_private, depth + 1);
+                               writer, writer_is_private, depth + 1,IgnoreField);
                 }
 
 
