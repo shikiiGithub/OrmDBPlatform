@@ -80,20 +80,26 @@ namespace dotNetLab.Data.Orm
                 {
 
                     AppLogEntity entity = null;
-                   
-                        entity = new AppLogEntity(LogFileDirPath);
+                    entity = new AppLogEntity(LogFileDirPath);
                     entity.LogFiredTime = DateTime.Now;
                     entity.Status = AppLogEntity.LogLevels.ERROR.ToString();
                     entity.Message = ex.Message + " " + ex.StackTrace;
-                
-                   
-                        entity.Save(EntitySaveMode.INSERT);
+                    entity.Save(EntitySaveMode.INSERT);
 
                 }
 
             }
+            else
+            {
+                AppLogEntity entity = new AppLogEntity(LogFileDirPath);
+                entity = new AppLogEntity(LogFileDirPath);
+                entity.LogFiredTime = DateTime.Now;
+                entity.Status = AppLogEntity.LogLevels.ERROR.ToString();
+                entity.Message = ex.Message + " " + ex.StackTrace;
+                entity.Save(EntitySaveMode.INSERT);
+            }
 
-            
+
         }
 
         public  void LogInfo(String msg, String LogFileDirPath = null)
@@ -111,6 +117,14 @@ namespace dotNetLab.Data.Orm
                     entity.Message = msg;
                     entity.Save(EntitySaveMode.INSERT);
                 }
+            }
+            else
+            {
+                AppLogEntity entity  = new AppLogEntity(LogFileDirPath);
+                entity.LogFiredTime = DateTime.Now;
+                entity.Status = AppLogEntity.LogLevels.INFO.ToString();
+                entity.Message = msg;
+                entity.Save(EntitySaveMode.INSERT);
             }
              
         }
