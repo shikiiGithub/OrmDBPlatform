@@ -88,7 +88,55 @@ namespace dotNetLab.Common
                 RenameFile(item, Path.GetFileNameWithoutExtension(item) + NewextName);
             }
         }
-       
+        public static bool DeleteDir(string dirPath)
+        {
+            try
+            {
+
+                //去除文件夹和子文件的只读属性
+                //去除文件夹的只读属性
+                System.IO.DirectoryInfo fileInfo = new DirectoryInfo(dirPath);
+                fileInfo.Attributes = FileAttributes.Normal & FileAttributes.Directory;
+
+                //去除文件的只读属性
+                System.IO.File.SetAttributes(dirPath, System.IO.FileAttributes.Normal);
+
+                //判断文件夹是否还存在
+                if (Directory.Exists(dirPath))
+                {
+
+                    foreach (string f in Directory.GetFileSystemEntries(dirPath))
+                    {
+
+                        if (File.Exists(f))
+                        {
+                            //如果有子文件删除文件
+                            File.Delete(f);
+                            Console.WriteLine(f);
+                        }
+                        else
+                        {
+                            //循环递归删除子文件夹
+                            DeleteDir(f);
+                        }
+
+                    }
+
+                    //删除空文件夹
+
+                    Directory.Delete(dirPath);
+
+                }
+                return true;
+
+            }
+            catch (Exception ex) // 异常处理
+            {
+                return false;
+            }
+
+        }
+
     }
 
    

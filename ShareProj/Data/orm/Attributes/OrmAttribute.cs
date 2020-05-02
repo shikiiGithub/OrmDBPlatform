@@ -1,7 +1,7 @@
 ﻿﻿using System;
 using System.Reflection;
 
-namespace dotNetLab
+namespace dotNetLab.Data
 {
 
     public class OrmAttribute : Attribute

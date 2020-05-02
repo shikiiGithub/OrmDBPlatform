@@ -13,8 +13,9 @@ namespace dotNetLab.Data
         void ChangeColumnType(string tableName, string colName, string ColTypeDefine);
 
 
-        void AddColumn(string tableName, String ColumnName, string FieldType);
-        
+        void AddColumn(string tableName, String ColumnName, string FieldType,String Extra=null);
+       
+
         void DropColumn(string tableName, string columnName);
 
         bool BootServer(String ServerDirPath);

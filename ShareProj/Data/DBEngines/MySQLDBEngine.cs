@@ -186,10 +186,10 @@ namespace dotNetLab.Data
             ExecuteNonQuery(sql );
         }
 
-        public void AddColumn(string tableName, String ColumnName, string FieldType )
+        public void AddColumn(string tableName, String ColumnName, string FieldType,String Extra=null )
         {
-            ExecuteNonQuery(String.Format("alter table {0} add column {1} {2} "
-                , tableName, ColumnName, FieldType
+            ExecuteNonQuery(String.Format("alter table {0} add column {1} {2} {3} "
+                , tableName, ColumnName, FieldType,Extra
                 ) );
         }
 

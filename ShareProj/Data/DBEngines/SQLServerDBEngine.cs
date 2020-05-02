@@ -124,7 +124,7 @@ namespace dotNetLab.Data
             return b;
         }
 
-        public void AddColumn(string tableName, string ColumnName, string FieldType)
+        public void AddColumn(string tableName, string ColumnName, string FieldType,String extra=null)
         {
             String sql = String.Format("ALTER TABLE {0} ADD {1} {2}", tableName, ColumnName, FieldType);
             this.ExecuteNonQuery(sql);

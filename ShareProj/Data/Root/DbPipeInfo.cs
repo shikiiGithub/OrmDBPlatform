@@ -113,37 +113,44 @@ namespace dotNetLab.Data
 
         void CycleCommands()
         {
-            
-            //回收已经完成的线程，Dbcommand
-            for (int i = 0; i < Threads.Count; i++)
+            try
             {
-                if(!Threads[i].IsAlive)
+                //回收已经完成的线程，Dbcommand
+                for (int i = 0; i < Threads.Count; i++)
                 {
-                   
-                    int nId = Threads[i].ManagedThreadId;
-                    DbCommand _cmd = ThreadId_DbCommandPairs[nId];
-                    ReservedDbCommands.Enqueue(_cmd);
-                    ThreadId_DbCommandPairs.Remove(nId);
-                    Threads.RemoveAt(i);
-                    ThreadIDs.Remove(nId);
-                }
-                else
-                {
-                    int nId = Threads[i].ManagedThreadId;
-                    DbCommand _cmd = ThreadId_DbCommandPairs[nId];
-                   if( _cmd.Connection.State != System.Data.ConnectionState.Connecting &&
-                        _cmd.Connection.State != System.Data.ConnectionState.Executing && 
-                        _cmd.Connection.State != System.Data.ConnectionState.Fetching )
+                    if (!Threads[i].IsAlive)
                     {
+
+                        int nId = Threads[i].ManagedThreadId;
+                        DbCommand _cmd = ThreadId_DbCommandPairs[nId];
                         ReservedDbCommands.Enqueue(_cmd);
                         ThreadId_DbCommandPairs.Remove(nId);
                         Threads.RemoveAt(i);
                         ThreadIDs.Remove(nId);
                     }
+                    else
+                    {
+                        int nId = Threads[i].ManagedThreadId;
+                        DbCommand _cmd = ThreadId_DbCommandPairs[nId];
+                        if (_cmd.Connection.State != System.Data.ConnectionState.Connecting &&
+                             _cmd.Connection.State != System.Data.ConnectionState.Executing &&
+                             _cmd.Connection.State != System.Data.ConnectionState.Fetching)
+                        {
+                            ReservedDbCommands.Enqueue(_cmd);
+                            ThreadId_DbCommandPairs.Remove(nId);
+                            Threads.RemoveAt(i);
+                            ThreadIDs.Remove(nId);
+                        }
 
+                    }
                 }
             }
-         //   if(Threads.Count==0 && )
+            catch ( Exception ex)
+            {
+
+            
+            }
+          
 
         }
         public DbCommand AvailableCommand  
