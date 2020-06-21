@@ -3,6 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Text;
 using System.Threading;
 
 
@@ -20,7 +23,8 @@ namespace dotNetLab.Data
         public DbCommand MainDbCommand;
         private Timer tmr;
         public int CycleCmdGapTimeInMillSecs = 1000;
-
+        //超时30秒
+        public int CmdExecutingTimeout = 30;
       
         public DbPipeInfo(DbConnection ThisDbConnection)
         {
@@ -47,10 +51,40 @@ namespace dotNetLab.Data
         }
 
 
+        public void ManualRemoveDbCmd(DbCommand dbCommand)
+        {
+            try
+            {
+                if (ReservedDbCommands.Contains(dbCommand))
+                    ReservedDbCommands.Dequeue();
+                if (ThreadId_DbCommandPairs.Values.Contains(dbCommand))
+                {
+                    int index_v = ThreadId_DbCommandPairs.Values.ToList().FindIndex(x => x == dbCommand);
+                    int nId = ThreadId_DbCommandPairs.Keys.ToList()[index_v];
+                    ThreadId_DbCommandPairs.Remove(nId);
+                    Threads.RemoveAt(index_v);
+                    ThreadIDs.Remove(nId);
+                    dbCommand.Connection.Close();
+                    dbCommand.Connection.Dispose();
+                    dbCommand.Dispose();
+
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                File.AppendAllText(String.Format("DbPipeInfo_{0}_Error", DateTime.Now.ToString("yyyy_MM")),
+                    "手动移除DbCommand 时出错位于ManualRemoveDbCmd " + ex.Message + " " + ex.StackTrace, Encoding.UTF8);
+
+            }
+
+        }
+
         public void PrepareFirstUse(DbConnection ThisDbConnection)
         {
             DbCommand command = ThisDbConnection.CreateCommand();
             MainDbCommand = command;
+            MainDbCommand.CommandTimeout = CmdExecutingTimeout;
             ReservedDbCommands.Enqueue(command);
 
         }
@@ -69,6 +103,7 @@ namespace dotNetLab.Data
             conn.ConnectionString =   connectionString  ;
             conn.Open();
             DbCommand command = conn.CreateCommand();
+            command.CommandTimeout = CmdExecutingTimeout;
             Console.WriteLine("创建了一个连接");
             return command;
         }
@@ -92,6 +127,7 @@ namespace dotNetLab.Data
             conn.ConnectionString = _connectionString==null? connectionString:_connectionString ;
             conn.Open();
             DbCommand command = conn.CreateCommand();
+            command.CommandTimeout = CmdExecutingTimeout;
             Console.WriteLine("创建了一个连接");
             return command;
         }
@@ -107,43 +143,51 @@ namespace dotNetLab.Data
             conn.Open();
             DbCommand command = conn.CreateCommand();
             Console.WriteLine("创建了一个连接");
+            command.CommandTimeout = CmdExecutingTimeout;
             ReservedDbCommands.Enqueue(command);
             return command;
         }
 
         void CycleCommands()
         {
-            
-            //回收已经完成的线程，Dbcommand
-            for (int i = 0; i < Threads.Count; i++)
+            try
             {
-                if(!Threads[i].IsAlive)
+                //回收已经完成的线程，Dbcommand
+                for (int i = 0; i < Threads.Count; i++)
                 {
-                   
-                    int nId = Threads[i].ManagedThreadId;
-                    DbCommand _cmd = ThreadId_DbCommandPairs[nId];
-                    ReservedDbCommands.Enqueue(_cmd);
-                    ThreadId_DbCommandPairs.Remove(nId);
-                    Threads.RemoveAt(i);
-                    ThreadIDs.Remove(nId);
-                }
-                else
-                {
-                    int nId = Threads[i].ManagedThreadId;
-                    DbCommand _cmd = ThreadId_DbCommandPairs[nId];
-                   if( _cmd.Connection.State != System.Data.ConnectionState.Connecting &&
-                        _cmd.Connection.State != System.Data.ConnectionState.Executing && 
-                        _cmd.Connection.State != System.Data.ConnectionState.Fetching )
+                    if (!Threads[i].IsAlive)
                     {
+
+                        int nId = Threads[i].ManagedThreadId;
+                        DbCommand _cmd = ThreadId_DbCommandPairs[nId];
                         ReservedDbCommands.Enqueue(_cmd);
                         ThreadId_DbCommandPairs.Remove(nId);
                         Threads.RemoveAt(i);
                         ThreadIDs.Remove(nId);
                     }
+                    else
+                    {
+                        int nId = Threads[i].ManagedThreadId;
+                        DbCommand _cmd = ThreadId_DbCommandPairs[nId];
+                        if (_cmd.Connection.State != System.Data.ConnectionState.Connecting &&
+                             _cmd.Connection.State != System.Data.ConnectionState.Executing &&
+                             _cmd.Connection.State != System.Data.ConnectionState.Fetching)
+                        {
+                            ReservedDbCommands.Enqueue(_cmd);
+                            ThreadId_DbCommandPairs.Remove(nId);
+                            Threads.RemoveAt(i);
+                            ThreadIDs.Remove(nId);
+                        }
 
+                    }
                 }
             }
-         //   if(Threads.Count==0 && )
+            catch ( Exception ex)
+            {
+
+            
+            }
+          
 
         }
         public DbCommand AvailableCommand  
@@ -151,6 +195,7 @@ namespace dotNetLab.Data
 
             get
             {
+                restart:;
                 DbCommand command = null;
                 int threadid = Thread.CurrentThread.ManagedThreadId;
                 if (!this.ThreadIDs.Contains(threadid))
@@ -167,7 +212,27 @@ namespace dotNetLab.Data
                 { 
                     command = ThreadId_DbCommandPairs[threadid];
                 }
+
+               if(command.Connection.State != System.Data.ConnectionState.Closed  &&
+                    command.Connection.State != System.Data.ConnectionState.Broken
+                    )
                 return command;
+               else
+                {
+                    bool isMainDbCommand = false;
+                    if (command == MainDbCommand)
+                        isMainDbCommand = true;
+                    ManualRemoveDbCmd(command);
+                    if (isMainDbCommand)
+                    {
+                        MainDbCommand = NewCommand();
+                        MainDbConnection = MainDbCommand.Connection;
+                        ReservedDbCommands.Enqueue(command);
+
+                    }
+
+                    goto restart;
+                }
            }
             
         }

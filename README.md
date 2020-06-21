@@ -13,10 +13,14 @@
 ### 传统桌面请使用.net_4.0 /.net core 的项目
 
 ## 开始使用
+   ### 0.使用原则一个OrmDBPlatform 对应一个database (比如mysql 中两个数据库 shikii 和 product,要同时访问这两个数据，请创建两个OrmDBPlatform对象 )
    ### 1.最简单的使用是使用nuget添加你想连接数据库的Data Provider的引用，比如搜索 Mysql 然后安装，安装完成后初始化
 ```c#
         //初始化
         OrmDB = new OrmDBPlatform();
+        //初始化第二个
+        OrmDB2nd = new OrmDBPlatform();
+
 
          //监控错误，将日志同时写入Console/db/文本文件中 
          //下面使用默认方式，默认方式为同步模式
@@ -87,8 +91,10 @@
    ```
 ### 3.增
  ```c#
-          //一般，数据量少时使用
-              SampleEntity se = new SampleEntity() ;
+          //一般，数据量少时使用 
+          //GetEntity<SampleEntity>的参数可以不写，其参数对应于实体构造方法
+              SampleEntity se = OrmDB.GetEntity<SampleEntity>() ;
+        
               se.Name="Google" ;
               se.XDesc="Fuck Google" ;
               se.Save() ;
