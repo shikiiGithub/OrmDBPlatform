@@ -96,7 +96,7 @@ namespace dotNetLab.Data
             }
             else
             {
-                 bool  b = InternalConnect("localhost", dbName, userName, pwd, 5432);
+                 bool  b = InternalConnect("localhost", dbName, userName, pwd, port);
                
                 return b;
             }
@@ -130,14 +130,14 @@ namespace dotNetLab.Data
 
                 
 
-                if (!File.Exists(dir + "\\Npgsql.dll"))
+                if (!File.Exists(dir + "/Npgsql.dll"))
                 {
                     // Tipper.Error = "Npgsql.dll";
                     PerformErrorHandler(this, new Exception("Npgsql.dd 未能找到！"));
                     return null;
                 }
-                Console.WriteLine(dir + "\\Npgsql.dll");
-                byte[] assemblyBuffer = File.ReadAllBytes(dir + "\\Npgsql.dll");
+                Console.WriteLine(dir + "/Npgsql.dll");
+                byte[] assemblyBuffer = File.ReadAllBytes(dir + "/Npgsql.dll");
 
                 if (asm_Npgsql == null)
                     asm_Npgsql = Assembly.Load(assemblyBuffer);
@@ -156,7 +156,7 @@ namespace dotNetLab.Data
             }
 
         }
-        public void AddColumn(string tableName, string ColumnName, string FieldType )
+        public void AddColumn(string tableName, string ColumnName, string FieldType,String Extra=null )
         {
             ExecuteNonQuery(String.Format("alter table {0} add column {1} {2} "
                , tableName, ColumnName, FieldType
@@ -188,7 +188,7 @@ namespace dotNetLab.Data
             List<string> AllTableNames = new List<string>();
             
             DataTable dt = this.ProvideTable(String.Format("select table_name from information_schema.TABLES  where table_schema='public';"));
-
+         
             for (int i = 0; i < dt.Rows.Count; i++)
             {
                 String strTableName = dt.Rows[i][0].ToString();

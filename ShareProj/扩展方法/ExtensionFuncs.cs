@@ -1,10 +1,13 @@
-﻿using System;
+﻿using dotNetLab.Data;
+using dotNetLab.Data.Orm;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
  
@@ -78,6 +81,60 @@ namespace dotNetLab.Common
 
             return arr;
 
+        }
+
+        public static List<T> ToEnityList<T>(this DataTable dt,OrmDBPlatform orm) where T :EntityBase
+        {
+            Func<Type, String> GetTableName = (EntityType) =>
+            {
+
+                String tableName = EntityType.Name;
+                if (tableName.EndsWith("Entity") && tableName != "Entity")
+                {
+                    if (tableName.EndsWith("_Entity"))
+                    {
+
+                        tableName = tableName.Remove(tableName.Length - "_Entity".Length, "_Entity".Length);
+
+                    }
+                    if (tableName.EndsWith("Entity"))
+                        tableName = tableName.Remove(tableName.Length - "Entity".Length, "Entity".Length);
+
+                }
+
+                return tableName;
+
+            };
+            String tableName = GetTableName(typeof(T));
+
+            List<T> EntitySet = new List<T>();
+            
+
+          
+            int nFileCount = dt.Columns == null ? 0:dt.Columns.Count;
+
+            int nRowCount = dt.Rows== null ? 0 : dt.Rows.Count;
+
+
+            if (nRowCount>0)//如果有数据
+            {
+                for (int i = 0; i < nRowCount; i++)
+                {
+                    dotNetLab.Data.Orm.EntityBase entity = (dotNetLab.Data.Orm.EntityBase)System.Activator.CreateInstance(typeof(T));
+                    for (int j = 0; j < nFileCount; j++) //逐个字段的遍历
+                    {
+                        Object obj = dt.Rows[i][j];
+                        entity.OrmHost = orm;
+                        String colName = dt.Columns[j].ColumnName;
+                        entity.AssignValue(colName, obj);
+                    }
+                    EntitySet.Add((T)entity);
+
+                }
+                   
+               
+            }
+            return EntitySet;
         }
 
         /// <summary>
@@ -317,6 +374,8 @@ namespace dotNetLab.Common
 
             }
         }
+
+
 
     }
 

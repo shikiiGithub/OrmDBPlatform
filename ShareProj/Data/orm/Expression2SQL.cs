@@ -355,8 +355,9 @@ namespace dotNetLab.Data.Orm
                     SecondStr = string.Format(" As {0} ", ExpressionRouter(mce.Arguments[1]).Replace("'", ""));
                     break;
                 case "Limit":
-                    if (mce.Arguments.Count > 1)
+                    if (mce.Arguments.Count > 2)
                         SecondStr = string.Format(" Limit {0},{1} ", ExpressionRouter(mce.Arguments[1]),
+
                             ExpressionRouter(mce.Arguments[2]));
                     else
                         SecondStr = string.Format(" Limit {0} ", ExpressionRouter(mce.Arguments[1]));

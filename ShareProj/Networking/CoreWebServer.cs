@@ -127,6 +127,7 @@ namespace dotNetLab.Web
             }
         }
     }
+   [Obsolete("已废弃")]
     public class CoreWebServer : HttpServerBase
     {
         Dictionary<String, MethodInfo> Routers;
@@ -141,36 +142,16 @@ namespace dotNetLab.Web
         //可以使用* 自动匹配ip
         public CoreWebServer(int maxThreads,String ip) : base(maxThreads, ip)
         {
-
+            Routers = new Dictionary<string, MethodInfo>();
+            RouterInfo = new Dictionary<string, Type>();
+            RouterInfo_Active = new Dictionary<string, object>();
         }
+        
+
         /// <summary>
         /// 注册路由(如果需要使用到Request/Respones 请将类继承自ApiController)
         /// </summary>
         /// <param name="route">为所调用的C# 方法</param>
-        /// <param name="ClassName">被调用的C#方法所在的类(这个类专门存放web api 方法)</param>
-        public void RegisterWebApiMethod(String route,Type ClassType)
-        {
-            MethodInfo mif = ClassType.GetMethod(route);
-            if (mif == null)
-            {
-                throw new Exception("未找到路由方法");
-
-            }
-            else
-            {
-                RouterInfo.Add(route.ToLower(), ClassType);
-                Routers.Add(route.ToLower(), mif);
-                this.RouterInfo_Active.Add(route.ToLower(), null);
-            }
-
-        }
-
-        /// <summary>
-        /// 适用于高速场合
-        /// 注册路由(如果需要使用到Request/Respones 请将类继承自ApiController)
-        /// </summary>
-        /// <param name="route">为所调用的C# 方法</param>
-        /// <param name="ClassName">被调用的C#方法所在的类(这个类专门存放web api 方法)</param>
         /// <param name="ActiveOnce">是否只初始化一次调用的C#方法所在的类</param>
         public void RegisterWebApiMethod(String route, Type ClassType,bool ActiveOnce)
         {
@@ -184,7 +165,10 @@ namespace dotNetLab.Web
             {
                 RouterInfo.Add(route.ToLower(), ClassType);
                 Routers.Add(route.ToLower(), mif);
+                if(ActiveOnce)
                 this.RouterInfo_Active.Add(route.ToLower(), System.Activator.CreateInstance(ClassType));
+                else
+                    this.RouterInfo_Active.Add(route.ToLower(), null);
             }
 
         }

@@ -74,8 +74,10 @@ namespace dotNetLab.Data.Orm
 
                         pif.SetValue(this, obj, null);
                     }
+                    else if(obj.GetType().Name == "DBNull")
+                    pif.SetValue(this, "", null);
                     else
-                    pif.SetValue(this, obj, null);
+                        pif.SetValue(this, obj, null);
                 }
             }
             catch (Exception ex)

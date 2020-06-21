@@ -17,6 +17,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Data\DBEngines\SQLServerDBEngine.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Data\Interfaces\IHugeDB.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Data\Interfaces\ITableInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\orm\Attributes\DBArrayAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Data\orm\Attributes\DBKeyAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Data\orm\Attributes\DBTypeAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Data\orm\Attributes\FireBirdTextTypeAttribute.cs" />

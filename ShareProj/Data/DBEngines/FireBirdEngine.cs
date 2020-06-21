@@ -31,7 +31,7 @@ namespace dotNetLab.Data
             }
         }
 
-        public void AddColumn(string tableName, string ColumnName, string FieldType )
+        public void AddColumn(string tableName, string ColumnName, string FieldType,String Extra=null)
         {
             String sql = String.Format("ALTER TABLE {0} ADD {1} {2}", tableName.ToUpper(), ColumnName.ToUpper(), FieldType.ToUpper());
             this.ExecuteNonQuery(sql);
